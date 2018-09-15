@@ -1,0 +1,16 @@
+[package]
+name = "crossroad-wallet"
+version = "0.0.1"
+authors = ["y.popovych@crossroad.io"]
+license = "GPL-3.0"
+description = "Crossroad Wallet Implementation"
+keywords = [ "Cardano", "Wallet", "Crossroad" ]
+
+[dependencies]
+cardano = { git = "https://github.com/input-output-hk/rust-cardano.git", branch = "master" }
+cryptoxide = { git = "https://github.com/input-output-hk/rust-cardano.git", branch = "master" }
+futures = "0.1"
+
+[lib]
+name = "crossroad-wallet"
+path = "src/lib.rs"
