@@ -1,6 +1,7 @@
 use network::{ Network as INetwork, NetworkType, PrivateKey as IPrivateKey, SeedSize, Error, MnemonicError };
 use super::cardano::hdwallet::{ XPrv };
-use super::bip39::{ Seed, MnemonicString, dictionary };
+use super::cardano::bip::bip39::{ Seed as CardanoSeed };
+use bip39::{ Seed, MnemonicString, dictionary };
 use super::private_key::PrivateKey;
 
 const UNIQUE_SEED_VALUE: &[u8] = b"CARDANO_seed_VALUE";
@@ -38,10 +39,12 @@ impl INetwork for Network {
     }
     MnemonicString::new(&dictionary::ENGLISH, mnemonic.to_owned())
       .map_err(|_| MnemonicError::UnsupportedWordFound)
-      .map(|mstring| {
+      .and_then(|mstring| {
         let seed = Seed::from_mnemonic_string(&mstring, UNIQUE_SEED_VALUE);
-        let xprv = XPrv::generate_from_bip39(&seed);
-        Vec::from(xprv.as_ref())
+        CardanoSeed::from_slice(seed.as_ref()).map(|cseed| {
+          let xprv = XPrv::generate_from_bip39(&cseed);
+          Vec::from(xprv.as_ref())
+        }).map_err(|err| { MnemonicError::Unknown })
       })
   }
 }

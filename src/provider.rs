@@ -81,7 +81,11 @@ impl HDWalletProvider {
   }
 
   pub fn create_wallet(&self, name: &str, password: &str) -> Box<Future<Item = (HDWallet, String), Error = Error>> {
-    let mnemonic = mnemonic::create_mnemonic(self.networks.values(), self.random.as_ref());
+    let networks: Vec<&Network> = self.networks.values().map(|b| b.as_ref()).collect();
+    let mnemonic = mnemonic::create_mnemonic(
+      &networks,
+      self.random.as_ref()
+    );
     
   }
 
@@ -89,8 +93,16 @@ impl HDWalletProvider {
     
   }
 
-  pub fn rename_wallet(&self, old_name: &str, new_name: &str, password: &str) -> Box<Future<Item = (), Error = StorageLoadError>> {
+  pub fn rename_wallet(&self, old_name: &str, new_name: &str, password: &str) -> Box<Future<Item = (), Error = Error>> {
 
+  }
+
+  pub fn remove_wallet(&self, name: &str, password: &str) -> Box<Future<Item = (), Error = Error>> {
+    let sname = name.to_owned();
+    let storage = self.storage;
+    self.load_wallet_data_raw(sname, password.to_owned())
+      .and_then(|_| storage.remove_bytes(&sname).map_err(Error::from_storage_error))
+      .into_box()
   }
 
   pub fn private_key(&self, name: &str, network: &NetworkType, password: &str) -> Box<Future<Item = Vec<u8>, Error = Error>> {
@@ -121,7 +133,7 @@ impl HDWalletProvider {
       .into_box()
   }
 
-  fn load_wallet_data(&self, name: String, password: String) -> Box<Future<Item = KeyStorage, Error = Error>> {
+  fn load_wallet_data_raw(&self, name: String, password: String) ->  Box<Future<Item = Vec<u8>, Error = Error>> {
     self.storage.load_bytes(&name)
       .map_err(Error::from_storage_error)
       .and_then(|data| {
@@ -130,6 +142,11 @@ impl HDWalletProvider {
           Err(err) => future::err(Error::from_decrypt_error(name, err))
         }
       })
+      .into_box()
+  }
+
+  fn load_wallet_data(&self, name: String, password: String) -> Box<Future<Item = KeyStorage, Error = Error>> {
+    self.load_wallet_data_raw(name, password)
       .and_then(|data| { 
         match VersionedData::from_bytes(&data).and_then(|vdata| vdata.get_data()) {
           Ok(wdata) => future::ok(wdata.private_keys),

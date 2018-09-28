@@ -4,7 +4,7 @@ use cryptoxide::pbkdf2::pbkdf2;
 use cryptoxide::sha2::Sha512;
 use std::iter::repeat;
 use std::error;
-use rand::Random;
+use external::entropy::Entropy;
 
 mod password_encryption_parameter {
     pub const ITER       : u32   = 19_162;
@@ -27,7 +27,7 @@ mod password_encryption_parameter {
 #[derive(Debug)]
 pub enum DecryptError {
   NotEnoughData,
-  WrongPassword
+  DecryptionFailed
 }
 
 impl std::fmt::Display for DecryptError {
@@ -38,13 +38,13 @@ impl std::fmt::Display for DecryptError {
 
 impl error::Error for DecryptError {}
 
-pub fn encrypt(data: &[u8], password: &str, rand: &Random) -> Vec<u8> {
+pub fn encrypt(data: &[u8], password: &str, entropy: &Entropy) -> Vec<u8> {
   use self::password_encryption_parameter::*;
   let mut salt: [u8; SALT_SIZE] = [0; SALT_SIZE];
   let mut nonce: [u8; NONCE_SIZE] = [0; NONCE_SIZE];
 
-  for e in salt.as_mut().iter_mut() { *e = rand.random(); }
-  for e in nonce.as_mut().iter_mut() { *e = rand.random(); }
+  for e in salt.as_mut().iter_mut() { *e = entropy.byte(); }
+  for e in nonce.as_mut().iter_mut() { *e = entropy.byte(); }
 
   let key = {
     let mut mac = Hmac::new(Sha512::new(), password.as_bytes());
@@ -93,6 +93,6 @@ pub fn decrypt(data: &[u8], password: &str) -> Result<Vec<u8>, DecryptError> {
   if decryption_succeed {
     Ok(decrypted)
   } else {
-    Err(DecryptError::WrongPassword)
+    Err(DecryptError::DecryptionFailed)
   }
 }

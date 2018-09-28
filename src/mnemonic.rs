@@ -1,7 +1,7 @@
 use network::Network;
 use std::cmp;
 use bip39;
-use rand::Random;
+use external::entropy::Entropy;
 
 pub fn calculate_seed_size(networks: &[&Network]) -> Option<usize> {
   let mut min = 0;
@@ -17,15 +17,15 @@ pub fn calculate_seed_size(networks: &[&Network]) -> Option<usize> {
   if max >= min { Some(min) } else { None }
 }
 
-pub fn create_mnemonic_with_size<'a>(size: usize, random: &Random) -> bip39::Result<&'a str> {
+pub fn create_mnemonic_with_size<'a>(size: usize, entropy: &Entropy) -> bip39::Result<&'a str> {
   bip39::Type::from_entropy_size(size).map(|etype| {
-    &*bip39::Entropy::generate(etype, || random.random()).to_mnemonics().to_string(&bip39::dictionary::ENGLISH)
+    &*bip39::Entropy::generate(etype, || entropy.byte()).to_mnemonics().to_string(&bip39::dictionary::ENGLISH)
   })
 }
 
-pub fn create_mnemonic<'a>(networks: &[&Network], random: &Random) -> Option<&'a str> {
+pub fn create_mnemonic<'a>(networks: &[&Network], entropy: &Entropy) -> Option<&'a str> {
   calculate_seed_size(networks).and_then(|size| {
-    match create_mnemonic_with_size(size, random) {
+    match create_mnemonic_with_size(size, entropy) {
       Ok(s) => Some(s),
       _ => None
     }

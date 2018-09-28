@@ -1,12 +1,12 @@
 
-#[cfg(feature = "cardano-network")]
+#[cfg(feature = "cardano")]
 pub mod cardano;
 
 use super::Network;
 
 pub fn all_networks<'a>() -> &'a [Box<Network>] {
   let mut networks: Vec<Box<Network>> = Vec::new();
-  #[cfg(feature = "cardano-network")]
+  #[cfg(feature = "cardano")]
   {
     networks.push(cardano::Network::boxed());
   }

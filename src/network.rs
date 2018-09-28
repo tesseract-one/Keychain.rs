@@ -25,7 +25,8 @@ pub enum MnemonicError {
   ToShort,
   ToLong,
   BadWordCount,
-  UnsupportedWordFound
+  UnsupportedWordFound,
+  Unknown
 }
 
 #[derive(Debug, Copy, Clone)]
