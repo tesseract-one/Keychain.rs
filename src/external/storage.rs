@@ -1,30 +1,30 @@
 use futures::prelude::*;
-use std::error::Error;
+use std::error;
 use std::fmt;
 
 #[derive(Debug)]
-pub enum StorageLoadError {
-  NoKey(String),
-  StorageError(String, Box<Error>)
+pub enum Error {
+  KeyDoesNotExist(String),
+  InternalError(String, Box<error::Error>)
 }
 
-impl fmt::Display for StorageLoadError {
+impl fmt::Display for Error {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     match self {
-      StorageLoadError::NoKey(key) => write!(f, "Key {} doesn't exist", key),
-      StorageLoadError::StorageError(key, err) => write!(f, "Key {} storage error: {}", key, err)
+      &Error::KeyDoesNotExist(ref key) => write!(f, "Key {} doesn't exist", key),
+      &Error::InternalError(ref key, ref err) => write!(f, "Key {} storage error: {}", key, err)
     }
   }
 }
 
-impl Error for StorageLoadError {}
+impl error::Error for Error {}
 
 pub trait Storage {
-  fn has_bytes(&self, key: &str) -> Box<Future<Item = bool, Error = StorageLoadError>>;
+  fn has_bytes(&self, key: &str) -> Box<Future<Item = bool, Error = Error>>;
 
-  fn load_bytes(&self, key: &str) -> Box<Future<Item = Vec<u8>, Error = StorageLoadError>>;
+  fn load_bytes(&self, key: &str) -> Box<Future<Item = Vec<u8>, Error = Error>>;
 
-  fn save_bytes(&self, key: &str, bytes: &[u8]) -> Box<Future<Item = (), Error = StorageLoadError>>;
+  fn save_bytes(&self, key: &str, bytes: &[u8]) -> Box<Future<Item = (), Error = Error>>;
 
-  fn remove_bytes(&self, key: &str) -> Box<Future<Item = (), Error = StorageLoadError>>;
+  fn remove_bytes(&self, key: &str) -> Box<Future<Item = (), Error = Error>>;
 }

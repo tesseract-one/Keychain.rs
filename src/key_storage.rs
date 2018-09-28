@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use super::network::NetworkType;
+use network_type::NetworkType;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct KeyStorage {
@@ -7,6 +7,10 @@ pub struct KeyStorage {
 }
 
 impl KeyStorage {
+  pub fn new(keys: &[(NetworkType, Vec<u8>)]) -> Self {
+    Self { keys: keys.into_iter().cloned().collect() }
+  }
+
   pub fn get_saved_networks(&self) -> Vec<NetworkType> {
     self.keys.keys().cloned().collect()
   }
@@ -16,6 +20,6 @@ impl KeyStorage {
   }
 
   pub fn keys(&self) -> Vec<(NetworkType, Vec<u8>)> {
-    self.keys.into_iter().collect()
+    (&self.keys).into_iter().map(|(nt, network)| (*nt, network.clone())).collect()
   }
 }

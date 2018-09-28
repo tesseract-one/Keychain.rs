@@ -1,4 +1,4 @@
-use key_path::{ Bip44_KeyPath, BIP44_SOFT_UPPER_BOUND };
+use key_path::{ Bip44KeyPath, BIP44_SOFT_UPPER_BOUND };
 
 /// the BIP44 coin type is set, by default, to cardano ada.
 pub const BIP44_COIN_TYPE : u32 = 0x80000717;
@@ -16,7 +16,7 @@ impl KeyPath {
   }
 }
 
-impl Bip44_KeyPath for KeyPath {
+impl Bip44KeyPath for KeyPath {
   fn coin(&self) -> u32 {
     BIP44_COIN_TYPE
   }

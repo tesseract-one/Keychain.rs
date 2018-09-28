@@ -24,4 +24,13 @@ path = "src/lib.rs"
 
 [features]
 # all networks by default
-default = ["cardano"]
+default = ["cardano", "ethereum", "custom-networks", "backup"]
+
+# ethereum network
+ethereum = []
+
+# enables custom networks support
+custom-networks = []
+
+# enables backup methods
+backup = []

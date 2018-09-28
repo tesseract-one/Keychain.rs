@@ -1,16 +1,5 @@
-use key_path::Bip44_KeyPath;
-
-#[derive(Debug, Copy, Clone, Hash, Eq, PartialEq, Serialize, Deserialize)]
-pub enum NetworkType {
-  Cardano = 1815,
-  Ethereum = 60
-}
-
-impl NetworkType {
-  pub fn all<'a>() -> &'a [NetworkType] {
-    &[NetworkType::Cardano, NetworkType::Ethereum]
-  }
-}
+use key_path::Bip44KeyPath;
+use network_type::NetworkType;
 
 #[derive(Debug, Copy, Clone)]
 pub enum Error {
@@ -48,9 +37,9 @@ impl SeedSize {
 pub trait PrivateKey {
   fn from_data(data: &[u8]) -> Result<Self, Error> where Self: Sized;
 
-  fn pub_key(&self, path: &Bip44_KeyPath) -> Result<Vec<u8>, Error>;
+  fn pub_key(&self, path: &Bip44KeyPath) -> Result<Vec<u8>, Error>;
 
-  fn sign(&self, data: &[u8], path: &Bip44_KeyPath) -> Result<Vec<u8>, Error>;
+  fn sign(&self, data: &[u8], path: &Bip44KeyPath) -> Result<Vec<u8>, Error>;
 
   fn boxed(self) -> Box<PrivateKey> where Self: Sized + 'static {
     Box::new(self)

@@ -1,4 +1,5 @@
-use network::{ Network as INetwork, NetworkType, PrivateKey as IPrivateKey, SeedSize, Error, MnemonicError };
+use network::{ Network as INetwork, PrivateKey as IPrivateKey, SeedSize, Error, MnemonicError };
+use network_type::NetworkType;
 use super::cardano::hdwallet::{ XPrv };
 use super::cardano::bip::bip39::{ Seed as CardanoSeed };
 use bip39::{ Seed, MnemonicString, dictionary };

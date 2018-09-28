@@ -15,6 +15,7 @@ mod wallet;
 mod provider;
 mod key_path;
 mod mnemonic;
+mod network_type;
 
 // Public Modules
 pub mod networks;
@@ -24,6 +25,10 @@ pub mod external;
 
 //Exports
 pub use wallet::HDWallet;
-pub use network::{ NetworkType, Network };
-pub use provider::HDWalletProvider;
-pub use key_path::Bip_44;
+pub use network::Network;
+pub use network_type::NetworkType;
+pub use provider::{ HDWalletProvider, Error as ProviderError };
+pub use key_path::Bip44;
+
+#[cfg(feature = "custom-networks")]
+pub use key_path::Bip44KeyPath;
