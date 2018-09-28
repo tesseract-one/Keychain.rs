@@ -1,5 +1,6 @@
 use bip39;
-use external::entropy::Entropy;
+use rand::rngs::OsRng;
+use rand::RngCore;
 
 #[derive(Debug, Copy, Clone, Hash, Eq, PartialEq)]
 pub enum Language {
@@ -34,9 +35,9 @@ impl Default for Language {
   }
 }
 
-pub fn generate(size: usize, language: Language, entropy: &Entropy) -> bip39::Result<String> {
+pub fn generate(size: usize, language: Language, random: &mut OsRng) -> bip39::Result<String> {
   bip39::Type::from_entropy_size(size).map(|etype| {
-    (*bip39::Entropy::generate(etype, || entropy.byte())
+    (*bip39::Entropy::generate(etype, || random.next_u32() as u8)
       .to_mnemonics()
       .to_string(language.to_dict())
     ).to_owned()

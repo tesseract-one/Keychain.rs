@@ -6,6 +6,7 @@ extern crate serde_derive;
 extern crate serde_cbor;
 extern crate futures;
 extern crate cryptoxide;
+extern crate rand;
 
 // Internal modules
 mod data;
@@ -21,7 +22,7 @@ mod network_type;
 pub mod networks;
 pub mod bip39;
 pub mod util;
-pub mod external;
+pub mod storage;
 
 //Exports
 pub use wallet::HDWallet;

@@ -163,8 +163,8 @@ impl Entropy {
     /// let entropy = Entropy::generate(Type::Type15Words, rand::random);
     /// ```
     ///
-    pub fn generate<G>(t: Type, gen: G) -> Self
-        where G: Fn() -> u8
+    pub fn generate<G>(t: Type, mut gen: G) -> Self
+        where G: FnMut() -> u8
     {
         let bytes = [0u8;32];
         let mut entropy = Self::new(t, &bytes[..]);

@@ -2,10 +2,10 @@ use futures::prelude::*;
 use futures::future;
 use util::future::*;
 use std::collections::HashMap;
-use std::sync::Arc;
+use std::sync::{ Arc, Mutex };
+use rand::rngs::OsRng;
 
-use external::storage::{ Storage, Error as StorageError };
-use external::entropy::Entropy;
+use storage::{ Storage, Error as StorageError };
 use wallet::HDWallet;
 use network::{ Network, MnemonicError };
 use network_type::NetworkType;
@@ -52,16 +52,16 @@ pub type Networks = Arc<HashMap<NetworkType, Box<Network>>>;
 pub struct HDWalletProvider {
   storage: Arc<Storage>,
   networks: Networks,
-  seed_size: usize,
-  entropy: Arc<Entropy>
+  random: Arc<Mutex<OsRng>>,
+  seed_size: usize
 }
 
 impl HDWalletProvider {
-  pub fn new(storage: Box<Storage>, entropy: Box<Entropy>) -> Self {
-    Self::with_network_objs(storage, entropy, all_networks()).unwrap() // It's safe. Our network key sizes should align
+  pub fn new(storage: Box<Storage>) -> Self {
+    Self::with_network_objs(storage, all_networks()).unwrap() // It's safe. Our network key sizes should align
   }
 
-  pub fn with_networks(storage: Box<Storage>, entropy: Box<Entropy>, networks: &[NetworkType]) -> Self {
+  pub fn with_networks(storage: Box<Storage>, networks: &[NetworkType]) -> Self {
     let filtered: Vec<Box<Network>> = all_networks()
       .into_iter()
       .filter(|network| {
@@ -69,16 +69,15 @@ impl HDWalletProvider {
         networks.iter().position(|nt| nt == &ntype).is_some()
       })
       .collect();
-    Self::with_network_objs(storage, entropy, filtered).unwrap() // It's safe. Our network key sizes should align
+    Self::with_network_objs(storage, filtered).unwrap() // It's safe. Our network key sizes should align
   }
 
   #[cfg(feature = "custom-networks")]
   pub fn with_custom_networks(
     storage: Box<Storage>,
-    entropy: Box<Entropy>,
     networks: Vec<Box<Network>>
   ) -> Result<Self, Error> {
-    Self::with_network_objs(storage, entropy, networks)
+    Self::with_network_objs(storage, networks)
   }
 
   pub fn has_network(&self, nt: &NetworkType) -> bool {
@@ -103,7 +102,7 @@ impl HDWalletProvider {
 
   pub fn create_wallet(&self, name: &str, password: &str, language: Option<Language>) -> Box<Future<Item = (HDWallet, String), Error = Error>> {
     let lang = language.unwrap_or(Language::default());
-    match generate_mnemonic(self.seed_size, lang, self.entropy.as_ref()) {
+    match generate_mnemonic(self.seed_size, lang, &mut self.random.lock().unwrap()) {
       Ok(mnemonic) => self.restore_wallet(name, &mnemonic, password).map(|wallet| (wallet, mnemonic)).into_box(),
       Err(_) => future::err(Error::InvalidSeedSize(self.seed_size)).into_box()
     }
@@ -138,10 +137,10 @@ impl HDWalletProvider {
     let spassword = password.to_owned();
     let storage1 = Arc::clone(&self.storage);
     let storage2 = Arc::clone(&self.storage);
-    let entropy = Arc::clone(&self.entropy);
+    let random = Arc::clone(&self.random);
     self.load_wallet_data_raw(name, password)
       .and_then(move |data| {
-        let crypted = crypt::encrypt(&data, &spassword, entropy.as_ref());
+        let crypted = crypt::encrypt(&data, &spassword, &mut random.lock().unwrap());
         storage1.save_bytes(&sto_name, &crypted).from_err()
       })
       .and_then(move |_| storage2.remove_bytes(&sname).from_err())
@@ -152,10 +151,10 @@ impl HDWalletProvider {
     let sname = name.to_owned();
     let snewpwd = newpwd.to_owned();
     let storage = Arc::clone(&self.storage);
-    let entropy = Arc::clone(&self.entropy);
+    let random = Arc::clone(&self.random);
     self.load_wallet_data_raw(name, oldpwd)
       .and_then(move |data| {
-        let crypted = crypt::encrypt(&data, &snewpwd, entropy.as_ref());
+        let crypted = crypt::encrypt(&data, &snewpwd, &mut random.lock().unwrap());
         storage.save_bytes(&sname, &crypted).from_err()
       })
       .into_box()
@@ -179,19 +178,18 @@ impl HDWalletProvider {
 
 // Private methods
 impl HDWalletProvider {
-  fn with_network_objs(storage: Box<Storage>, entropy: Box<Entropy>, networks: Vec<Box<Network>>) -> Result<Self, Error> {
+  fn with_network_objs(storage: Box<Storage>, networks: Vec<Box<Network>>) -> Result<Self, Error> {
     match Self::calculate_seed_size(&networks) {
-      Some(seed_size) => {
+      Some(seed_size) => OsRng::new().map(|random| {
         let map: HashMap<NetworkType, Box<Network>> = networks.into_iter().map(|nt| { (nt.get_type(), nt) }).collect();
-        Ok(
-          Self { 
-            storage: Arc::from(storage),
-            seed_size,
-            entropy: Arc::from(entropy),
-            networks: Arc::new(map)
-          }
-        )
-      },
+        
+        Self { 
+          storage: Arc::from(storage),
+          seed_size,
+          random: Arc::new(Mutex::new(random)),
+          networks: Arc::new(map)
+        }
+      }).map_err(|_| Error::UnknownError),
       None => Err(Error::CantCalculateSeedSize)
     }
   }
@@ -202,7 +200,7 @@ impl HDWalletProvider {
     if let Err(err) = data {
       return future::err(Error::DataParseError(name.to_owned(), err)).into_box();
     }
-    let crypted = crypt::encrypt(&data.unwrap(), password, self.entropy.as_ref());
+    let crypted = crypt::encrypt(&data.unwrap(), password, &mut self.random.lock().unwrap());
     self.storage.save_bytes(name, &crypted)
       .from_err()
       .into_box()
