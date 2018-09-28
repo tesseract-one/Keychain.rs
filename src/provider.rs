@@ -34,7 +34,6 @@ impl From<StorageError> for Error {
     match err {
       StorageError::KeyDoesNotExist(name) => Error::WalletDoesNotExist(name),
       StorageError::InternalError(name, err) => Error::StorageError(name, err),
-      _ => Error::UnknownError
     }
   }
 }
@@ -44,7 +43,6 @@ impl Error {
     match err {
       crypt::DecryptError::NotEnoughData => Error::NotEnoughData(name),
       crypt::DecryptError::DecryptionFailed => Error::WrongPassword(name),
-      _ => Error::UnknownError
     }
   }
 }
@@ -64,7 +62,14 @@ impl HDWalletProvider {
   }
 
   pub fn with_networks(storage: Box<Storage>, entropy: Box<Entropy>, networks: &[NetworkType]) -> Self {
-    Self::with_network_objs(storage, entropy, all_networks()).unwrap() // It's safe. Our network key sizes should align
+    let filtered: Vec<Box<Network>> = all_networks()
+      .into_iter()
+      .filter(|network| {
+        let ntype = network.get_type();
+        networks.iter().position(|nt| nt == &ntype).is_some()
+      })
+      .collect();
+    Self::with_network_objs(storage, entropy, filtered).unwrap() // It's safe. Our network key sizes should align
   }
 
   #[cfg(feature = "custom-networks")]
