@@ -18,7 +18,7 @@ impl fmt::Display for Error {
       &Error::InvalidMnemonic(ref err) => write!(f, "Mnemonic error: {}", err),
       &Error::InvalidKeySize(size, good) => write!(f, "Invalid key size {}, accepts {}", size, good),
       &Error::InvalidKeyData(ref err) => write!(f, "Invalid key data: {}", err),
-      &Error::SignError(ref err) => write!(f, "Sign error", err)
+      &Error::SignError(ref err) => write!(f, "Sign error: {}", err)
     }
   }
 }

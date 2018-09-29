@@ -70,11 +70,11 @@ impl Error {
     Error::DataParseError(name.to_owned(), err)
   }
 
-  pub fn from_wallet_error(name: String, err: WalletError) -> Self {
-    Error::WalletError(name, err)
+  pub fn from_wallet_error(name: &str, err: WalletError) -> Self {
+    Error::WalletError(name.to_owned(), err)
   }
 
-  pub fn from_key_error(name: String, nt: NetworkType, err: PrivateKeyError) -> Self {
-    Error::PrivateKeyError(name, nt, err)
+  pub fn from_key_error(name: &str, nt: NetworkType, err: PrivateKeyError) -> Self {
+    Error::PrivateKeyError(name.to_owned(), nt, err)
   }
 }

@@ -19,7 +19,7 @@ mod mnemonic;
 mod network_type;
 mod entropy;
 mod error;
-mod network;
+mod private_key;
 
 // Public Modules
 pub mod networks;
