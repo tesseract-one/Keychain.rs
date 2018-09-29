@@ -2,8 +2,6 @@ use network::{ Network as INetwork, SeedSize };
 use private_key::{ PrivateKey as IPrivateKey, Error};
 use mnemonic::{ Error as MnemonicError };
 use network_type::NetworkType;
-use super::cardano::hdwallet::{ XPrv };
-use super::cardano::bip::bip39::{ Seed as CardanoSeed };
 use bip39::{ Seed, MnemonicString, dictionary };
 use super::private_key::PrivateKey;
 
@@ -42,12 +40,9 @@ impl INetwork for Network {
     }
     MnemonicString::new(&dictionary::ENGLISH, mnemonic.to_owned())
       .map_err(|err| Into::<MnemonicError>::into(err).into())
-      .and_then(|mstring| {
+      .map(|mstring| {
         let seed = Seed::from_mnemonic_string(&mstring, UNIQUE_SEED_VALUE);
-        CardanoSeed::from_slice(seed.as_ref()).map(|cseed| {
-          let xprv = XPrv::generate_from_bip39(&cseed);
-          Vec::from(xprv.as_ref())
-        }).map_err(|err| { Error::InvalidKeyData(Box::new(err)) })
+        PrivateKey::data_from_seed(&seed)
       })
   }
 }

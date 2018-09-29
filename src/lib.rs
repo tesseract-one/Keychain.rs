@@ -36,3 +36,4 @@ pub use key_path::Bip44;
 
 #[cfg(feature = "custom-networks")]
 pub use key_path::Bip44KeyPath;
+pub use entropy::*;

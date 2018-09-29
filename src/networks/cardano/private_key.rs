@@ -3,6 +3,10 @@ use key_path::{ Bip44KeyPath, BIP44_PURPOSE, BIP44_SOFT_UPPER_BOUND, Error as KP
 use super::key_path::BIP44_COIN_TYPE;
 use private_key::{ Error, PrivateKey as IPrivateKey };
 
+use bip39;
+use cryptoxide::sha2::Sha512;
+use cryptoxide::digest::Digest;
+
 const D_SCHEME: DerivationScheme = DerivationScheme::V2;
 
 pub struct PrivateKey {
@@ -10,6 +14,20 @@ pub struct PrivateKey {
 }
 
 impl PrivateKey {
+  pub fn data_from_seed(seed: &bip39::Seed) -> Vec<u8> {
+    let mut out = [0u8; XPRV_SIZE];
+    let mut hasher = Sha512::new();
+    hasher.input(&seed.as_ref()[0..32]);
+    hasher.result(&mut out[0..64]);
+    out[0] &= 248;
+    out[31] &= 63;
+    out[31] |= 64;
+    out[31] &= 0b1101_1111; // set 3rd highest bit to 0 as per the spec
+    out[64..96].clone_from_slice(&seed.as_ref()[32..64]);
+
+    Vec::from(out.as_ref())
+  }
+
   fn derive_private(&self, path: &Bip44KeyPath) -> Result<XPrv, KPError> {
     if path.purpose() != BIP44_PURPOSE {
       return Err(KPError::InvalidPurpose(path.purpose()));
