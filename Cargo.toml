@@ -7,7 +7,6 @@ description = "Crossroad Wallet Implementation"
 keywords = [ "Cardano", "Wallet", "Crossroad" ]
 
 [dependencies]
-cardano = { git = "https://github.com/input-output-hk/rust-cardano.git", optional = true, branch = "master" }
 rand = { git = "https://github.com/rust-random/rand.git", branch = "master" }
 cryptoxide = "0.1"
 futures = "0.1"
@@ -25,6 +24,9 @@ path = "src/lib.rs"
 [features]
 # all networks by default
 default = ["cardano", "ethereum", "custom-networks", "backup"]
+
+# cardano network
+cardano = []
 
 # ethereum network
 ethereum = []

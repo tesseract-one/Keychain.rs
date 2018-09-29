@@ -9,20 +9,6 @@ version = "1.2.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
-name = "cardano"
-version = "0.1.0"
-source = "git+https://github.com/input-output-hk/rust-cardano.git#c37abbe7ed637ea44771949a99ae1fdc1b222e4b"
-dependencies = [
- "cbor_event 0.1.0 (git+https://github.com/input-output-hk/rust-cardano.git)",
- "cryptoxide 0.1.0 (git+https://github.com/input-output-hk/rust-cardano.git)",
-]
-
-[[package]]
-name = "cbor_event"
-version = "0.1.0"
-source = "git+https://github.com/input-output-hk/rust-cardano.git#c37abbe7ed637ea44771949a99ae1fdc1b222e4b"
-
-[[package]]
 name = "cloudabi"
 version = "0.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -34,7 +20,6 @@ dependencies = [
 name = "crossroad-wallet"
 version = "0.0.1"
 dependencies = [
- "cardano 0.1.0 (git+https://github.com/input-output-hk/rust-cardano.git)",
  "cryptoxide 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "futures 0.1.24 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.5.5 (git+https://github.com/rust-random/rand.git)",
@@ -43,11 +28,6 @@ dependencies = [
  "serde_derive 1.0.79 (registry+https://github.com/rust-lang/crates.io-index)",
  "unicode-normalization 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
-
-[[package]]
-name = "cryptoxide"
-version = "0.1.0"
-source = "git+https://github.com/input-output-hk/rust-cardano.git#c37abbe7ed637ea44771949a99ae1fdc1b222e4b"
 
 [[package]]
 name = "cryptoxide"
@@ -242,10 +222,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [metadata]
 "checksum bitflags 1.0.4 (registry+https://github.com/rust-lang/crates.io-index)" = "228047a76f468627ca71776ecdebd732a3423081fcf5125585bcd7c49886ce12"
 "checksum byteorder 1.2.6 (registry+https://github.com/rust-lang/crates.io-index)" = "90492c5858dd7d2e78691cfb89f90d273a2800fc11d98f60786e5d87e2f83781"
-"checksum cardano 0.1.0 (git+https://github.com/input-output-hk/rust-cardano.git)" = "<none>"
-"checksum cbor_event 0.1.0 (git+https://github.com/input-output-hk/rust-cardano.git)" = "<none>"
 "checksum cloudabi 0.0.3 (registry+https://github.com/rust-lang/crates.io-index)" = "ddfc5b9aa5d4507acaf872de71051dfd0e309860e88966e1051e462a077aac4f"
-"checksum cryptoxide 0.1.0 (git+https://github.com/input-output-hk/rust-cardano.git)" = "<none>"
 "checksum cryptoxide 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "bc9be687df90da186ed5c6ada0b6b4d69f5ad914071870bc5d41277377d30427"
 "checksum fuchsia-zircon 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)" = "2e9763c69ebaae630ba35f74888db465e49e259ba1bc0eda7d06f4a067615d82"
 "checksum fuchsia-zircon-sys 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)" = "3dcaa9ae7725d12cdb85b3ad99a434db70b468c09ded17e012d86b5c1010f7a7"

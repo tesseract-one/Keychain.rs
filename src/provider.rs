@@ -97,6 +97,14 @@ impl HDWalletProvider {
     }
   }
 
+  pub fn restore_wallet_from_keys(&self, name: &str, password: &str, keys: &[(NetworkType, Vec<u8>)]) -> Box<Future<Item = HDWallet, Error = Error>> {
+    let key_storage = KeyStorage::new(keys);
+    match HDWallet::new(name, key_storage.clone(), Arc::clone(&self.networks)) {
+      Err(err) => future::err(Error::from_wallet_error(name, err)).into_box(),
+      Ok(wallet) => self.save_wallet_data(name, password, &key_storage).map(move |_| wallet).into_box()
+    }
+  }
+
   pub fn rename_wallet(&self, name: &str, to_name: &str, password: &str) -> Box<Future<Item = (), Error = Error>> {
     let sname = name.to_owned();
     let sto_name = to_name.to_owned();
