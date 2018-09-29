@@ -53,6 +53,7 @@ use cryptoxide::sha2::{Sha512};
 use cryptoxide::pbkdf2::{pbkdf2};
 use std::{fmt, result, str, ops::Deref, error};
 use util::{hex, securemem};
+use entropy::{ Provider as EntropyProvider };
 
 /// Error regarding BIP39 operations
 #[derive(Debug, PartialEq, Eq)]
@@ -163,12 +164,10 @@ impl Entropy {
     /// let entropy = Entropy::generate(Type::Type15Words, rand::random);
     /// ```
     ///
-    pub fn generate<G>(t: Type, mut gen: G) -> Self
-        where G: FnMut() -> u8
-    {
+    pub fn generate(t: Type, eprovider: &EntropyProvider) -> Self {
         let bytes = [0u8;32];
         let mut entropy = Self::new(t, &bytes[..]);
-        for e in entropy.as_mut().iter_mut() { *e = gen(); }
+        eprovider.fill_bytes(entropy.as_mut());
         entropy
     }
 
@@ -944,8 +943,7 @@ pub mod dictionary {
 #[cfg(test)]
 mod test {
     use super::*;
-    extern crate rand;
-    use self::rand::random;
+    use entropy::{ Entropy as EntropyProvider };
 
     extern crate unicode_normalization;
     use self::unicode_normalization::UnicodeNormalization;
@@ -985,7 +983,7 @@ mod test {
 
     #[test]
     fn from_mnemonic_to_mnemonic() {
-        let entropy = Entropy::generate(Type::Type12Words, random);
+        let entropy = Entropy::generate(Type::Type12Words, &EntropyProvider::new().unwrap());
         let mnemonics = entropy.to_mnemonics();
         let entropy2 = Entropy::from_mnemonics(&mnemonics).unwrap();
         assert_eq!(entropy, entropy2);

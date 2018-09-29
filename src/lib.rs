@@ -17,6 +17,7 @@ mod provider;
 mod key_path;
 mod mnemonic;
 mod network_type;
+mod entropy;
 
 // Public Modules
 pub mod networks;
