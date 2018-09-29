@@ -4,60 +4,24 @@ use util::future::*;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use storage::{ Storage, Error as StorageError };
-use wallet::{ HDWallet, Error as WalletError };
-use network::{ Network, MnemonicError };
+use storage::{ Storage };
+use wallet::{ HDWallet };
+use error::Error;
+use network::Network;
 use network_type::NetworkType;
 use networks::all_networks;
 use key_storage::KeyStorage;
-use entropy::{ Entropy, Provider as EntropyProvider };
+use entropy::{ Entropy, OsEntropy };
 use mnemonic::{ generate as generate_mnemonic, Language };
 use util::crypt;
 use data::{ VersionedData, WalletDataV1 };
-
-#[derive(Debug)]
-pub enum Error {
-  WalletDoesNotExist(String),
-  StorageError(String, Box<std::error::Error>),
-  WrongPassword(String),
-  NotEnoughData(String),
-  CantCalculateSeedSize(usize, usize),
-  InvalidSeedSize(usize),
-  PrivateKeyDoesNotExist(String, NetworkType),
-  DataParseError(String, serde_cbor::error::Error),
-  MnemonicError(String),
-  RandomGeneratorError(rand::Error),
-  WalletError(String, WalletError)
-}
-
-impl From<StorageError> for Error {
-  fn from(err: StorageError) -> Self {
-    match err {
-      StorageError::KeyDoesNotExist(name) => Error::WalletDoesNotExist(name),
-      StorageError::InternalError(name, err) => Error::StorageError(name, err),
-    }
-  }
-}
-
-impl Error {
-  fn from_decrypt_error(name: String, err: crypt::DecryptError) -> Self {
-    match err {
-      crypt::DecryptError::NotEnoughData => Error::NotEnoughData(name),
-      crypt::DecryptError::DecryptionFailed => Error::WrongPassword(name),
-    }
-  }
-
-  fn from_wallet_error(name: String, err: WalletError) -> Self {
-    Error::WalletError(name, err)
-  }
-}
 
 pub type Networks = Arc<HashMap<NetworkType, Box<Network>>>;
 
 pub struct HDWalletProvider {
   storage: Arc<Storage>,
   networks: Networks,
-  random: Arc<EntropyProvider>,
+  random: Arc<Entropy>,
   seed_size: usize
 }
 
@@ -103,7 +67,7 @@ impl HDWalletProvider {
     self.load_wallet_data(name, password)
       .and_then(move |pks|
         HDWallet::new(&sname, pks, networks)
-          .map_err(|err| Error::from_wallet_error(sname, err))
+          .map_err(|err| Error::from_wallet_error(&sname, err))
           .into_future()
       )
       .into_box()
@@ -113,35 +77,24 @@ impl HDWalletProvider {
     let lang = language.unwrap_or(Language::default());
     match generate_mnemonic(self.seed_size, lang, self.random.as_ref()) {
       Ok(mnemonic) => self.restore_wallet(name, &mnemonic, password).map(|wallet| (wallet, mnemonic)).into_box(),
-      Err(_) => future::err(Error::InvalidSeedSize(self.seed_size)).into_box()
+      Err(_) => future::err(Error::InvalidSeedSize(name.to_owned(), self.seed_size)).into_box()
     }
   }
 
   pub fn restore_wallet(&self, name: &str, mnemonic: &str, password: &str) -> Box<Future<Item = HDWallet, Error = Error>> {
     let sname = name.to_owned();
-    let start: Result<Vec<(NetworkType, Vec<u8>)>, MnemonicError> = Ok(Vec::with_capacity(self.networks.len()));
-    let keys = self.networks.as_ref().into_iter()
-      .fold(start, |res, (nt, network)| {
-        match res {
-          Err(err) => Err(err),
-          Ok(mut vec) => network.key_data_from_mnemonic(mnemonic).map(|data| {
-            vec.push((*nt, data));
-            vec
-          })
-        }
-      });
-    if let Err(err) = keys {
-      return future::err(Error::MnemonicError(sname)).into_box();
-    }
-    let key_storage = KeyStorage::new(&keys.unwrap());
     let networks = Arc::clone(&self.networks);
-    self.save_wallet_data(name, password, &key_storage)
-      .and_then(move |_| 
-        HDWallet::new(&sname, key_storage, networks)
-          .map_err(|err| Error::from_wallet_error(sname, err))
-          .into_future()
-      )
-      .into_box()
+    match HDWallet::key_storage_for_mnemonic(mnemonic, self.networks.as_ref()) {
+      Err(err) => future::err(Error::from_wallet_error(name, err)).into_box(),
+      Ok(key_storage) => 
+        self.save_wallet_data(name, password, &key_storage)
+          .and_then(move |_| 
+            HDWallet::new(&sname, key_storage, networks)
+              .map_err(|err| Error::from_wallet_error(&sname, err))
+              .into_future()
+          )
+          .into_box()
+    }
   }
 
   pub fn rename_wallet(&self, name: &str, to_name: &str, password: &str) -> Box<Future<Item = (), Error = Error>> {
@@ -193,7 +146,7 @@ impl HDWalletProvider {
 impl HDWalletProvider {
   fn with_network_objs(storage: Box<Storage>, networks: Vec<Box<Network>>) -> Result<Self, Error> {
     Self::calculate_seed_size(&networks)
-      .and_then(|seed| Entropy::new().map(|rnd| (seed, rnd)).map_err(|err| Error::RandomGeneratorError(err)))
+      .and_then(|seed| OsEntropy::new().map(|rnd| (seed, rnd)).map_err(|err| Error::EntropyGeneratorError(err)))
       .map(|(seed_size, random)| {
         let map: HashMap<NetworkType, Box<Network>> =
           networks.into_iter().map(|nt| { (nt.get_type(), nt) }).collect();
@@ -226,7 +179,7 @@ impl HDWalletProvider {
       .and_then(move |data| {
         match crypt::decrypt(&data, &spassword) {
           Ok(decrypted) => future::ok(decrypted),
-          Err(err) => future::err(Error::from_decrypt_error(sname, err))
+          Err(err) => future::err(Error::from_decrypt_error(&sname, err))
         }
       })
       .into_box()

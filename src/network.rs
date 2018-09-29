@@ -1,22 +1,5 @@
-use key_path::Bip44KeyPath;
 use network_type::NetworkType;
-
-#[derive(Debug, Copy, Clone)]
-pub enum Error {
-  WrongKeyPath,
-  WrongKeySize,
-  BadKeyData,
-  SignError
-}
-
-#[derive(Debug, Copy, Clone)]
-pub enum MnemonicError {
-  ToShort,
-  ToLong,
-  BadWordCount,
-  UnsupportedWordFound,
-  Unknown
-}
+use private_key::{ PrivateKey, Error as PrivateKeyError };
 
 #[derive(Debug, Copy, Clone)]
 pub struct SeedSize {
@@ -34,18 +17,6 @@ impl SeedSize {
   }
 }
 
-pub trait PrivateKey {
-  fn from_data(data: &[u8]) -> Result<Self, Error> where Self: Sized;
-
-  fn pub_key(&self, path: &Bip44KeyPath) -> Result<Vec<u8>, Error>;
-
-  fn sign(&self, data: &[u8], path: &Bip44KeyPath) -> Result<Vec<u8>, Error>;
-
-  fn boxed(self) -> Box<PrivateKey> where Self: Sized + 'static {
-    Box::new(self)
-  }
-}
-
 pub trait Network {
   fn new() -> Self where Self: Sized;
 
@@ -53,9 +24,9 @@ pub trait Network {
 
   fn get_seed_size(&self) -> SeedSize;
 
-  fn key_from_data(&self, data: &[u8]) -> Result<Box<PrivateKey>, Error>;
+  fn key_from_data(&self, data: &[u8]) -> Result<Box<PrivateKey>, PrivateKeyError>;
 
-  fn key_data_from_mnemonic(&self, mnemonic: &str) -> Result<Vec<u8>, MnemonicError>;
+  fn key_data_from_mnemonic(&self, mnemonic: &str) -> Result<Vec<u8>, PrivateKeyError>;
 
   fn boxed() -> Box<Self> where Self: Sized {
     Box::new(Self::new())

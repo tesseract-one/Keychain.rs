@@ -1,4 +1,6 @@
-use network::{ Network as INetwork, PrivateKey as IPrivateKey, SeedSize, Error, MnemonicError };
+use network::{ Network as INetwork, SeedSize };
+use private_key::{ PrivateKey as IPrivateKey, Error};
+use mnemonic::{ Error as MnemonicError };
 use network_type::NetworkType;
 use super::cardano::hdwallet::{ XPrv };
 use super::cardano::bip::bip39::{ Seed as CardanoSeed };
@@ -26,26 +28,26 @@ impl INetwork for Network {
     PrivateKey::from_data(data).map(|pk| pk.boxed())
   }
 
-  fn key_data_from_mnemonic(&self, mnemonic: &str) -> Result<Vec<u8>, MnemonicError> {
+  fn key_data_from_mnemonic(&self, mnemonic: &str) -> Result<Vec<u8>, Error> {
     let seed_size = self.get_seed_size();
     let words = mnemonic.split(" ").filter(|part| part.len() > 0).collect::<Vec<&str>>();
     if words.len() > seed_size.max_words() {
-      return Err(MnemonicError::ToLong);
+      return Err(MnemonicError::MnemonicToLong(words.len(), seed_size.max_words()).into());
     }
     if words.len() < seed_size.min_words() {
-      return Err(MnemonicError::ToShort);
+      return Err(MnemonicError::MnemonicToShort(words.len(), seed_size.min_words()).into());
     }
     if words.len() % 3 != 0 {
-      return Err(MnemonicError::BadWordCount);
+      return Err(MnemonicError::WrongNumberOfWords(words.len()).into());
     }
     MnemonicString::new(&dictionary::ENGLISH, mnemonic.to_owned())
-      .map_err(|_| MnemonicError::UnsupportedWordFound)
+      .map_err(|err| Into::<MnemonicError>::into(err).into())
       .and_then(|mstring| {
         let seed = Seed::from_mnemonic_string(&mstring, UNIQUE_SEED_VALUE);
         CardanoSeed::from_slice(seed.as_ref()).map(|cseed| {
           let xprv = XPrv::generate_from_bip39(&cseed);
           Vec::from(xprv.as_ref())
-        }).map_err(|err| { MnemonicError::Unknown })
+        }).map_err(|err| { Error::InvalidKeyData(Box::new(err)) })
       })
   }
 }

@@ -18,6 +18,8 @@ mod key_path;
 mod mnemonic;
 mod network_type;
 mod entropy;
+mod error;
+mod network;
 
 // Public Modules
 pub mod networks;
@@ -29,7 +31,7 @@ pub mod storage;
 pub use wallet::HDWallet;
 pub use network::Network;
 pub use network_type::NetworkType;
-pub use provider::{ HDWalletProvider, Error as ProviderError };
+pub use provider::{ HDWalletProvider };
 pub use key_path::Bip44;
 
 #[cfg(feature = "custom-networks")]

@@ -12,7 +12,7 @@ impl fmt::Display for Error {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     match self {
       &Error::KeyDoesNotExist(ref key) => write!(f, "Key {} doesn't exist", key),
-      &Error::InternalError(ref key, ref err) => write!(f, "Key {} storage error: {}", key, err)
+      &Error::InternalError(ref key, ref err) => write!(f, "Key {} has storage error: {}", key, err)
     }
   }
 }

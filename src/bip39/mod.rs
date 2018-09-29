@@ -53,7 +53,7 @@ use cryptoxide::sha2::{Sha512};
 use cryptoxide::pbkdf2::{pbkdf2};
 use std::{fmt, result, str, ops::Deref, error};
 use util::{hex, securemem};
-use entropy::{ Provider as EntropyProvider };
+use entropy::{ Entropy as EntropyProvider };
 
 /// Error regarding BIP39 operations
 #[derive(Debug, PartialEq, Eq)]
@@ -943,7 +943,7 @@ pub mod dictionary {
 #[cfg(test)]
 mod test {
     use super::*;
-    use entropy::{ Entropy as EntropyProvider };
+    use entropy::OsEntropy;
 
     extern crate unicode_normalization;
     use self::unicode_normalization::UnicodeNormalization;
@@ -983,7 +983,7 @@ mod test {
 
     #[test]
     fn from_mnemonic_to_mnemonic() {
-        let entropy = Entropy::generate(Type::Type12Words, &EntropyProvider::new().unwrap());
+        let entropy = Entropy::generate(Type::Type12Words, &OsEntropy::new().unwrap());
         let mnemonics = entropy.to_mnemonics();
         let entropy2 = Entropy::from_mnemonics(&mnemonics).unwrap();
         assert_eq!(entropy, entropy2);

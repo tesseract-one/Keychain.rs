@@ -1,3 +1,5 @@
+use std::fmt;
+
 // special number for BIP44 purpose
 pub const BIP44_PURPOSE: u32 = 0x8000002C;
 
@@ -12,13 +14,33 @@ pub enum Error {
   InvalidPartsCount(usize),
   InvalidPurpose(u32),
   InvalidPathMarker(String),
-  InvalidCoin(u32),
+  InvalidCoin(u32, u32),
   InvalidChange(u32),
+  InvalidAddress(u32),
   EmptyValueAtIndex(usize),
   ParseErrorAtIndex(usize, std::num::ParseIntError),
   NonHardenedValueAtIndex(usize),
   HardenedValueAtIndex(usize)
 }
+
+impl fmt::Display for Error {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    match self {
+      &Error::InvalidPartsCount(count) => write!(f, "Invalid BIP44 parts count {}, expected: {}", count, BIP44_PARTS_COUNT),
+      &Error::InvalidPurpose(purpose) => write!(f, "Invalid BIP44 purpose {}, expected: {}", purpose, BIP44_PURPOSE),
+      &Error::InvalidPathMarker(ref marker) => write!(f, "Invalid path marker '{}', expected: 'm'", marker),
+      &Error::InvalidCoin(coin, accepts) => write!(f, "Invalid coin {}, expected: {}", coin, accepts),
+      &Error::InvalidChange(change) => write!(f, "Invalid change {}", change),
+      &Error::InvalidAddress(addr) => write!(f, "Invalid address {}", addr),
+      &Error::EmptyValueAtIndex(index) => write!(f, "Found empty value at index: {}", index),
+      &Error::ParseErrorAtIndex(index, ref err) => write!(f, "Can't parse number at index {}, error: {}", index, err),
+      &Error::NonHardenedValueAtIndex(index) => write!(f, "Value at index {} should be hardened", index),
+      &Error::HardenedValueAtIndex(index) => write!(f, "Value at index {} should be non-hardened", index)
+    }
+  }
+}
+
+impl std::error::Error for Error {}
 
 pub trait Bip44KeyPath {
   fn purpose(&self) -> u32 {

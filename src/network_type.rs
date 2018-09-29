@@ -1,3 +1,5 @@
+use std::fmt;
+
 #[derive(Debug, Copy, Clone, Hash, Eq, PartialEq, Serialize, Deserialize)]
 pub enum NetworkType {
   #[cfg(feature = "cardano")]
@@ -20,5 +22,29 @@ impl NetworkType {
       types.push(NetworkType::Ethereum);
     }
     types
+  }
+}
+
+impl fmt::Display for NetworkType {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    #[cfg(feature = "cardano")]
+    {
+      if self == &NetworkType::Cardano {
+        return write!(f, "Cardano");
+      }
+    }
+    #[cfg(feature = "ethereum")]
+    {
+      if self == &NetworkType::Ethereum {
+        return write!(f, "Ethereum");
+      }
+    }
+    #[cfg(feature = "custom-networks")]
+    {
+      if let &NetworkType::Custom(id) = self {
+        return write!(f, "Custom({})", id);
+      }
+    }
+    Err(fmt::Error {})
   }
 }

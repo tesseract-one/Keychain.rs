@@ -1,7 +1,7 @@
 use super::cardano::hdwallet::{ XPrv, XPRV_SIZE, DerivationScheme, Signature };
 use key_path::{ Bip44KeyPath, BIP44_PURPOSE, BIP44_SOFT_UPPER_BOUND, Error as KPError };
 use super::key_path::BIP44_COIN_TYPE;
-use network::{ PrivateKey as IPrivateKey, Error as NError  };
+use private_key::{ Error, PrivateKey as IPrivateKey };
 
 const D_SCHEME: DerivationScheme = DerivationScheme::V2;
 
@@ -15,7 +15,7 @@ impl PrivateKey {
       return Err(KPError::InvalidPurpose(path.purpose()));
     }
     if path.coin() != BIP44_COIN_TYPE {
-      return Err(KPError::InvalidCoin(path.coin()));
+      return Err(KPError::InvalidCoin(path.coin(), BIP44_COIN_TYPE));
     }
     if path.account() < BIP44_SOFT_UPPER_BOUND {
       return Err(KPError::NonHardenedValueAtIndex(3))
@@ -36,31 +36,31 @@ impl PrivateKey {
 }
 
 impl IPrivateKey for PrivateKey {
-  fn from_data(data: &[u8]) -> Result<Self, NError> {
+  fn from_data(data: &[u8]) -> Result<Self, Error> {
     let mut arr: [u8; XPRV_SIZE] = [0; XPRV_SIZE];
     if data.len() < XPRV_SIZE {
-      return Err(NError::WrongKeySize);
+      return Err(Error::InvalidKeySize(data.len(), XPRV_SIZE));
     }
     arr.copy_from_slice(data);
     XPrv::from_bytes_verified(arr)
       .map(|xprv| {
         Self { xprv: xprv.derive(D_SCHEME, BIP44_PURPOSE).derive(D_SCHEME, BIP44_COIN_TYPE) }
       })
-      .map_err(|err| NError::BadKeyData)
+      .map_err(|err| Error::InvalidKeyData(Box::new(err)))
   }
 
-  fn pub_key(&self, path: &Bip44KeyPath) -> Result<Vec<u8>, NError> {
+  fn pub_key(&self, path: &Bip44KeyPath) -> Result<Vec<u8>, Error> {
     self.derive_private(path)
       .map(|pk| Vec::from(pk.public().as_ref()))
-      .map_err(|err| NError::WrongKeyPath)
+      .map_err(|err| err.into())
   }
 
-  fn sign(&self, data: &[u8], path: &Bip44KeyPath) -> Result<Vec<u8>, NError> {
+  fn sign(&self, data: &[u8], path: &Bip44KeyPath) -> Result<Vec<u8>, Error> {
     self.derive_private(path)
       .map(|pk| {
         let signature: Signature<Vec<u8>> = pk.sign(data);
         Vec::from(signature.as_ref())
       })
-      .map_err(|err| NError::WrongKeyPath)
+      .map_err(|err| err.into())
   }
 }
