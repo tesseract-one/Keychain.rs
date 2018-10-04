@@ -3,7 +3,7 @@ use network_type::NetworkType;
 use network::Network;
 use key_storage::KeyStorage;
 use private_key::{ Error as PrivateKeyError, PrivateKey };
-use key_path::Bip44KeyPath;
+use key_path::KeyPath;
 use std::collections::HashMap;
 use provider::Networks;
 
@@ -74,14 +74,21 @@ impl HDWallet {
     self.private_keys.keys().cloned().collect()
   }
 
-  pub fn pub_key(&self, network: &NetworkType, path: &Bip44KeyPath) -> Result<Vec<u8>, Error> {
+  pub fn pub_key(&self, network: &NetworkType, path: &KeyPath) -> Result<Vec<u8>, Error> {
     match self.private_keys.get(network) {
       None => Err(Error::KeyNotFound(*network)),
       Some(pk) => pk.pub_key(path).map_err(|err| Error::KeyError(*network, err))
     }
   }
 
-  pub fn sign(&self, network: &NetworkType, data: &[u8], path: &Bip44KeyPath) -> Result<Vec<u8>, Error> {
+  pub fn verify(&self, network: &NetworkType, data: &[u8], signature: &[u8], path: &KeyPath) -> Result<bool, Error> {
+    match self.private_keys.get(network) {
+      None => Err(Error::KeyNotFound(*network)),
+      Some(pk) => pk.verify(data, signature, path).map_err(|err| Error::KeyError(*network, err))
+    }
+  }
+
+  pub fn sign(&self, network: &NetworkType, data: &[u8], path: &KeyPath) -> Result<Vec<u8>, Error> {
     match self.private_keys.get(network) {
       None => Err(Error::KeyNotFound(*network)),
       Some(pk) => pk.sign(data, path).map_err(|err| Error::KeyError(*network, err))

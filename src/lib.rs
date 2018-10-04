@@ -32,8 +32,8 @@ pub use wallet::HDWallet;
 pub use network::Network;
 pub use network_type::NetworkType;
 pub use provider::{ HDWalletProvider };
-pub use key_path::Bip44;
+pub use key_path::GenericKeyPath;
 
 #[cfg(feature = "custom-networks")]
-pub use key_path::Bip44KeyPath;
+pub use key_path::KeyPath;
 pub use entropy::*;

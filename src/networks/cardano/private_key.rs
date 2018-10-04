@@ -1,10 +1,10 @@
 
-use key_path::{ Bip44KeyPath, BIP44_PURPOSE, BIP44_SOFT_UPPER_BOUND, Error as KPError };
+use key_path::{ KeyPath, BIP44_PURPOSE, BIP44_SOFT_UPPER_BOUND, Error as KPError };
 use super::key_path::BIP44_COIN_TYPE;
 use private_key::{ Error, PrivateKey as IPrivateKey };
 
 use bip39;
-use super::hdwallet::{ XPrv, XPRV_SIZE, DerivationScheme, Signature };
+use super::hdwallet::{ XPrv, XPRV_SIZE, DerivationScheme, Signature, SIGNATURE_SIZE };
 
 const D_SCHEME: DerivationScheme = DerivationScheme::V2;
 
@@ -18,21 +18,21 @@ impl PrivateKey {
     Vec::from(xprv.as_ref())
   }
 
-  fn derive_private(&self, path: &Bip44KeyPath) -> Result<XPrv, KPError> {
+  fn derive_private(&self, path: &KeyPath) -> Result<XPrv, KPError> {
     if path.purpose() != BIP44_PURPOSE {
-      return Err(KPError::InvalidPurpose(path.purpose()));
+      return Err(KPError::InvalidPurpose(path.purpose(), BIP44_PURPOSE));
     }
     if path.coin() != BIP44_COIN_TYPE {
       return Err(KPError::InvalidCoin(path.coin(), BIP44_COIN_TYPE));
     }
     if path.account() < BIP44_SOFT_UPPER_BOUND {
-      return Err(KPError::NonHardenedValueAtIndex(3))
+      return Err(KPError::InvalidAccount(path.account()));
     }
     if path.change() != 0 && path.change() != 1 {
       return Err(KPError::InvalidChange(path.change()));
     }
     if path.address() >= BIP44_SOFT_UPPER_BOUND {
-      return Err(KPError::HardenedValueAtIndex(5))
+      return Err(KPError::InvalidAddress(path.address()));
     }
     Ok(
       self.xprv
@@ -57,13 +57,28 @@ impl IPrivateKey for PrivateKey {
       .map_err(|err| Error::InvalidKeyData(Box::new(err)))
   }
 
-  fn pub_key(&self, path: &Bip44KeyPath) -> Result<Vec<u8>, Error> {
+  fn pub_key(&self, path: &KeyPath) -> Result<Vec<u8>, Error> {
     self.derive_private(path)
       .map(|pk| Vec::from(pk.public().as_ref()))
       .map_err(|err| err.into())
   }
 
-  fn sign(&self, data: &[u8], path: &Bip44KeyPath) -> Result<Vec<u8>, Error> {
+  fn verify(&self, data: &[u8], signature: &[u8], path: &KeyPath) -> Result<bool, Error> {
+    let mut sign: [u8; SIGNATURE_SIZE] = [0; SIGNATURE_SIZE];
+    if signature.len() < SIGNATURE_SIZE {
+      return Err(Error::InvalidSignatureSize(signature.len(), SIGNATURE_SIZE));
+    }
+    sign.copy_from_slice(signature);
+
+    self.derive_private(path)
+      .map(|pk| {
+        let native_signature: Signature<Vec<u8>> = Signature::from_bytes(sign);
+        pk.verify(data, &native_signature)
+      })
+      .map_err(|err| err.into())
+  }
+
+  fn sign(&self, data: &[u8], path: &KeyPath) -> Result<Vec<u8>, Error> {
     self.derive_private(path)
       .map(|pk| {
         let signature: Signature<Vec<u8>> = pk.sign(data);

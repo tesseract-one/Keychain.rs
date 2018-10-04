@@ -1,4 +1,4 @@
-use key_path::{ Bip44KeyPath, BIP44_SOFT_UPPER_BOUND };
+use key_path::{ KeyPath as IKeyPath, Error, BIP44_SOFT_UPPER_BOUND, BIP44_PURPOSE };
 
 /// the BIP44 coin type is set, by default, to cardano ada.
 pub const BIP44_COIN_TYPE : u32 = 0x80000717;
@@ -11,12 +11,25 @@ pub struct KeyPath {
 }
 
 impl KeyPath {
-  pub fn new(account: u32, change: u32, address: u32) -> Self {
-    KeyPath { account: account + BIP44_SOFT_UPPER_BOUND, change, address }
+  pub fn new(account: u32, change: u32, address: u32) -> Result<Self, Error> {
+    if account >= BIP44_SOFT_UPPER_BOUND {
+      return Err(Error::InvalidAccount(account));
+    }
+    if change != 0 && change != 1 {
+      return Err(Error::InvalidChange(change));
+    }
+    if address >= BIP44_SOFT_UPPER_BOUND {
+      return Err(Error::InvalidAddress(change));
+    }
+    Ok(KeyPath { account: account + BIP44_SOFT_UPPER_BOUND, change, address })
   }
 }
 
-impl Bip44KeyPath for KeyPath {
+impl IKeyPath for KeyPath {
+  fn purpose(&self) -> u32 {
+    BIP44_PURPOSE
+  }
+
   fn coin(&self) -> u32 {
     BIP44_COIN_TYPE
   }

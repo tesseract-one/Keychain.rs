@@ -7,66 +7,59 @@ pub const BIP44_PURPOSE: u32 = 0x8000002C;
 pub const BIP44_SOFT_UPPER_BOUND: u32 = 0x80000000;
 
 // length of bip44
-pub const BIP44_PARTS_COUNT: usize = 6;
+pub const KEY_PATH_PARTS_COUNT: usize = 6;
 
 #[derive(Debug, Clone)]
 pub enum Error {
   InvalidPartsCount(usize),
-  InvalidPurpose(u32),
+  InvalidPurpose(u32, u32),
   InvalidPathMarker(String),
   InvalidCoin(u32, u32),
+  InvalidAccount(u32),
   InvalidChange(u32),
   InvalidAddress(u32),
   EmptyValueAtIndex(usize),
-  ParseErrorAtIndex(usize, std::num::ParseIntError),
-  NonHardenedValueAtIndex(usize),
-  HardenedValueAtIndex(usize)
+  ParseErrorAtIndex(usize, std::num::ParseIntError)
 }
 
 impl fmt::Display for Error {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     match self {
-      &Error::InvalidPartsCount(count) => write!(f, "Invalid BIP44 parts count {}, expected: {}", count, BIP44_PARTS_COUNT),
-      &Error::InvalidPurpose(purpose) => write!(f, "Invalid BIP44 purpose {}, expected: {}", purpose, BIP44_PURPOSE),
+      &Error::InvalidPartsCount(count) => write!(f, "Invalid parts count {}, expected: {}", count, KEY_PATH_PARTS_COUNT),
+      &Error::InvalidPurpose(purpose, exptected) => write!(f, "Invalid purpose {}, expected: {}", purpose, exptected),
       &Error::InvalidPathMarker(ref marker) => write!(f, "Invalid path marker '{}', expected: 'm'", marker),
       &Error::InvalidCoin(coin, accepts) => write!(f, "Invalid coin {}, expected: {}", coin, accepts),
+      &Error::InvalidAccount(account) => write!(f, "Invalid account {}", account),
       &Error::InvalidChange(change) => write!(f, "Invalid change {}", change),
       &Error::InvalidAddress(addr) => write!(f, "Invalid address {}", addr),
       &Error::EmptyValueAtIndex(index) => write!(f, "Found empty value at index: {}", index),
       &Error::ParseErrorAtIndex(index, ref err) => write!(f, "Can't parse number at index {}, error: {}", index, err),
-      &Error::NonHardenedValueAtIndex(index) => write!(f, "Value at index {} should be hardened", index),
-      &Error::HardenedValueAtIndex(index) => write!(f, "Value at index {} should be non-hardened", index)
     }
   }
 }
 
 impl std::error::Error for Error {}
 
-pub trait Bip44KeyPath {
-  fn purpose(&self) -> u32 {
-    BIP44_PURPOSE
-  }
-
+pub trait KeyPath {
+  fn purpose(&self) -> u32;
   fn coin(&self) -> u32;
   fn account(&self) -> u32;
   fn change(&self) -> u32;
   fn address(&self) -> u32;
 }
 
-pub struct Bip44 {
+pub struct GenericKeyPath {
+  purpose: u32,
   coin: u32,
   account: u32,
   change: u32,
   address: u32
 }
 
-impl Bip44 {
+impl GenericKeyPath {
   fn hard_int(index: usize, s: &str) -> Result<u32, Error> {
     if s.len() == 0 {
       return Err(Error::EmptyValueAtIndex(index))
-    }
-    if &s[s.len()-1..] != "'" {
-      return Err(Error::NonHardenedValueAtIndex(index))
     }
     Self::soft_int(index, &s[..s.len() - 1]).map(|val| { val + BIP44_SOFT_UPPER_BOUND })
   }
@@ -75,45 +68,60 @@ impl Bip44 {
     if s.len() == 0 {
       return Err(Error::EmptyValueAtIndex(index));
     }
-    if &s[s.len()-1..] == "'" {
-      return Err(Error::HardenedValueAtIndex(index))
-    }
     str::parse::<u32>(s)
       .map_err(|err| { Error::ParseErrorAtIndex(index, err) })
-      .and_then(|val| {
-        if val >= BIP44_SOFT_UPPER_BOUND { Err(Error::HardenedValueAtIndex(index)) } else { Ok(val) }
-      })
+  }
+
+  fn parse_int(index: usize, s: &str) -> Result<u32, Error> {
+    if s.len() == 0 {
+      return Err(Error::EmptyValueAtIndex(index));
+    }
+    if &s[s.len()-1..] == "'" {
+      Self::hard_int(index, s)
+    } else {
+      Self::soft_int(index, s)
+    }
+  }
+
+  fn print_int(val: u32) -> String {
+    if val >= BIP44_SOFT_UPPER_BOUND {
+      format!("{}'", (val - BIP44_SOFT_UPPER_BOUND))
+    } else {
+      val.to_string()
+    }
   }
 
   pub fn from(path: &str) -> Result<Self, Error> {
     let parts: Vec<&str> = path.split("/").map(|s| { s.trim() }).collect();
-    if parts.len() != BIP44_PARTS_COUNT {
+    if parts.len() != KEY_PATH_PARTS_COUNT {
       return Err(Error::InvalidPartsCount(parts.len()));
     }
     if parts[0] != "m" {
       return Err(Error::InvalidPathMarker(parts[0].to_owned()));
     }
 
-    Self::hard_int(1, parts[1])
-      .and_then(|purpose| 
-        if purpose != BIP44_PURPOSE {
-          Err(Error::InvalidPurpose(purpose))
-        } else {
-          Self::hard_int(2, parts[2])
-        }
-      )
-      .and_then(|coin| Self::hard_int(3, parts[3]).map(|account| (coin, account)))
-      .and_then(|(coin, account)| {
-        Self::soft_int(4, parts[4]).map(|change| (coin, account, change)) 
+    Self::parse_int(1, parts[1])
+      .and_then(|purpose| Self::parse_int(2, parts[2]).map(|coin| (purpose, coin)))
+      .and_then(|(purpose, coin)| Self::parse_int(3, parts[3]).map(|account| (purpose, coin, account)))
+      .and_then(|(purpose, coin, account)| {
+        Self::parse_int(4, parts[4]).map(|change| (purpose, coin, account, change)) 
       })
-      .and_then(|(coin, account, change)| {
-        Self::soft_int(5, parts[5]).map(|address| (coin, account, change, address))
+      .and_then(|(purpose, coin, account, change)| {
+        Self::parse_int(5, parts[5]).map(|address| (purpose, coin, account, change, address))
       })
-      .map(|(coin, account, change, address)| Bip44 { coin, account, change, address })
+      .map(|(purpose, coin, account, change, address)| GenericKeyPath { purpose, coin, account, change, address })
+  }
+
+  pub fn to_string(&self) -> String {
+    self.into()
   }
 }
 
-impl Bip44KeyPath for Bip44 {
+impl KeyPath for GenericKeyPath {
+  fn purpose(&self) -> u32 {
+    self.purpose
+  }
+
   fn coin(&self) -> u32 {
     self.coin
   }
@@ -131,15 +139,15 @@ impl Bip44KeyPath for Bip44 {
   }
 }
 
-impl<'a> From<&'a Bip44KeyPath> for String {
-  fn from(path: &'a Bip44KeyPath) -> Self {
+impl<'a> From<&'a GenericKeyPath> for String {
+  fn from(path: &'a GenericKeyPath) -> Self {
     format!(
-      "m/{}'/{}'/{}'/{}/{}",
-      path.purpose() - BIP44_SOFT_UPPER_BOUND,
-      path.coin() - BIP44_SOFT_UPPER_BOUND,
-      path.account() - BIP44_SOFT_UPPER_BOUND,
-      path.change(),
-      path.address()
+      "m/{}/{}/{}/{}/{}",
+      GenericKeyPath::print_int(path.purpose()),
+      GenericKeyPath::print_int(path.coin()),
+      GenericKeyPath::print_int(path.account()),
+      GenericKeyPath::print_int(path.change()),
+      GenericKeyPath::print_int(path.address())
     )
   }
 }

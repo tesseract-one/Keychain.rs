@@ -167,6 +167,13 @@ impl XPrv {
         Signature::from_bytes(signature_extended(message, &self.as_ref()[0..64]))
     }
 
+    /// verify a given signature
+    ///
+    pub fn verify<T>(&self, message: &[u8], signature: &Signature<T>) -> bool {
+        let xpub = self.public();
+        xpub.verify(message, signature)
+    }
+
     pub fn derive(&self, scheme: DerivationScheme, index: DerivationIndex) -> Self {
         derive_private(self, index, scheme)
     }
@@ -203,6 +210,23 @@ pub struct XPub([u8; XPUB_SIZE]);
 impl XPub {
     /// create a `XPub` by taking ownership of the given array
     pub fn from_bytes(bytes: [u8;XPUB_SIZE]) -> Self { XPub(bytes) }
+
+    /// verify a signature
+    ///
+    /// ```
+    /// use cardano::hdwallet::{XPrv, XPub, Seed, Signature};
+    ///
+    /// let seed = Seed::from_bytes([0;32]);
+    /// let xprv = XPrv::generate_from_seed(&seed);
+    /// let xpub = xprv.public();
+    /// let msg = b"Some message...";
+    ///
+    /// let signature : Signature<String> = xprv.sign(msg);
+    /// assert!(xpub.verify(msg, &signature));
+    /// ```
+    pub fn verify<T>(&self, message: &[u8], signature: &Signature<T>) -> bool {
+        ed25519::verify(message, &self.as_ref()[0..32], signature.as_ref())
+    }
 }
 impl PartialEq for XPub {
     fn eq(&self, rhs: &XPub) -> bool { fixed_time_eq(self.as_ref(), rhs.as_ref()) }
