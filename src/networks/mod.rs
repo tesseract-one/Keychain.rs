@@ -2,6 +2,12 @@
 #[cfg(feature = "cardano")]
 pub mod cardano;
 
+#[cfg(feature = "bitcoin")]
+pub mod bitcoin;
+
+#[cfg(feature = "ethereum")]
+pub mod ethereum;
+
 use super::Network;
 
 pub fn all_networks<'a>() -> Vec<Box<Network>> {
