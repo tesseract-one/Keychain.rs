@@ -77,7 +77,11 @@ impl From<bip39::Error> for Error {
 
 pub fn generate(size: usize, language: Language, entropy: &Entropy) -> Result<String, Error> {
   bip39::Type::from_entropy_size(size).map(|etype| {
-    (*bip39::Entropy::generate(etype, entropy)
+    (*bip39::Entropy::generate(etype, || {
+        let mut buf = [0u8];
+        entropy.fill_bytes(&mut buf);
+        buf[0]
+      })
       .to_mnemonics()
       .to_string(language.to_dict())
     ).to_owned()
