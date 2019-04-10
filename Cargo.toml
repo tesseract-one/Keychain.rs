@@ -1,10 +1,10 @@
 [package]
-name = "crossroad-wallet"
+name = "tesseract-keychain"
 version = "0.0.1"
-authors = ["y.popovych@crossroad.io"]
-license = "GPL-3.0"
-description = "Crossroad Wallet Implementation"
-keywords = [ "Cardano", "Wallet", "Crossroad" ]
+authors = ["Tesseract Systems, Inc. <info@tesseract.one>"]
+license = "Apache-2.0"
+description = "Tesseract Multi-Network Keychain Implementation"
+keywords = [ "Wallet", "Tesseract", "Cardano", "Ethereum", "Bitcoin" ]
 
 [dependencies]
 rand = { git = "https://github.com/rust-random/rand.git", branch = "master" }
@@ -18,7 +18,7 @@ serde_cbor = "0.9"
 unicode-normalization = "0.1"
 
 [lib]
-name = "crossroad_wallet"
+name = "keychain"
 path = "src/lib.rs"
 
 [features]
