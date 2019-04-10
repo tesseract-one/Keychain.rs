@@ -7,7 +7,7 @@ description = "Tesseract Multi-Network Keychain Implementation"
 keywords = [ "Wallet", "Tesseract", "Cardano", "Ethereum", "Bitcoin" ]
 
 [dependencies]
-rand = { git = "https://github.com/rust-random/rand.git", branch = "master" }
+rand = "0.6"
 cryptoxide = "0.1"
 futures = "0.1"
 serde = "1.0"
