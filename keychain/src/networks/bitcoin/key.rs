@@ -1,6 +1,6 @@
 use key::{ Key as IKey, Error };
-use key_path::{ Error as KPError, KeyPath, BIP44_PURPOSE, BIP44_SOFT_UPPER_BOUND };
-use super::key_path::BIP44_COIN_TYPE;
+use key_path::{ Error as KPError, KeyPath, BIP44_SOFT_UPPER_BOUND };
+use super::key_path::COIN_TYPE;
 use network::Network;
 use bip39;
 
@@ -13,8 +13,6 @@ pub struct Key {
 impl Key {
   pub fn from_data(data: &[u8]) -> Result<Self, Error> {
     XPrv::from_data(data)
-      .and_then(|pk| pk.derive(BIP44_PURPOSE))
-      .and_then(|pk| pk.derive(BIP44_COIN_TYPE))
       .map_err(|err| err.into())
       .map(|pk|
         Self {
@@ -28,11 +26,8 @@ impl Key {
   }
 
   fn derive_private(&self, path: &KeyPath) -> Result<XPrv, Error> {
-    if path.purpose() != BIP44_PURPOSE {
-      return Err(KPError::InvalidPurpose(path.purpose(), BIP44_PURPOSE).into());
-    }
-    if path.coin() != BIP44_COIN_TYPE {
-      return Err(KPError::InvalidCoin(path.coin(), BIP44_COIN_TYPE).into());
+    if path.coin() != COIN_TYPE {
+      return Err(KPError::InvalidCoin(path.coin(), COIN_TYPE).into());
     }
     if path.account() < BIP44_SOFT_UPPER_BOUND {
       return Err(KPError::InvalidAccount(path.account()).into());
@@ -44,7 +39,9 @@ impl Key {
       return Err(KPError::InvalidAddress(path.address()).into());
     }
     self.xprv
-      .derive(path.account())
+      .derive(path.purpose())
+      .and_then(|pk| pk.derive(path.coin()))
+      .and_then(|pk| pk.derive(path.account()))
       .and_then(|pk| pk.derive(path.change()))
       .and_then(|pk| pk.derive(path.address()))
       .map_err(|err| err.into())
@@ -53,7 +50,7 @@ impl Key {
 
 impl IKey for Key {
   fn network(&self) -> Network {
-    Network::ETHEREUM
+    Network::BITCOIN
   }
 
   fn address(&self, path: &KeyPath) -> Result<Vec<u8>, Error> {

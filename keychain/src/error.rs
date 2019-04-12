@@ -1,8 +1,6 @@
 use entropy::OsEntropyError;
 use network::Network;
 use data::{ Error as DataError };
-// use wallet::{ Error as WalletError };
-// use storage::{ Error as StorageError };
 use key::{ Error as KeyError };
 use mnemonic::{ Error as MnemonicError };
 use util::crypt::{ DecryptError as CryptError };

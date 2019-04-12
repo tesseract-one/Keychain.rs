@@ -3,6 +3,9 @@ use key_path::{ KeyPath, Error as KeyPathError };
 use network::Network;
 use mnemonic::{ Error as MnemonicError };
 
+#[cfg(any(feature = "ethereum", feature = "bitcoin"))]
+use secp_wallet::{ KeyError as SecpKeyError };
+
 #[derive(Debug)]
 pub enum Error {
   InvalidKeyPath(KeyPathError),
@@ -26,6 +29,13 @@ impl fmt::Display for Error {
   }
 }
 
+#[cfg(any(feature = "ethereum", feature = "bitcoin"))]
+impl Error {
+  pub fn from_secp_sign_error(err: SecpKeyError) -> Self {
+    Error::SignError(Box::new(err))
+  }
+}
+
 impl From<MnemonicError> for Error {
   fn from(err: MnemonicError) -> Self {
     Error::InvalidMnemonic(err)
@@ -35,6 +45,16 @@ impl From<MnemonicError> for Error {
 impl From<KeyPathError> for Error {
   fn from(err: KeyPathError) -> Self {
     Error::InvalidKeyPath(err)
+  }
+}
+
+#[cfg(any(feature = "ethereum", feature = "bitcoin"))]
+impl From<SecpKeyError> for Error {
+  fn from(err: SecpKeyError) -> Self {
+    match err {
+      SecpKeyError::InvalidSignature(bad, good) => Error::InvalidSignatureSize(bad, good),
+      _ => Error::InvalidKeyData(Box::new(err))
+    }
   }
 }
 
