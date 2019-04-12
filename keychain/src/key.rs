@@ -1,5 +1,6 @@
 use std::fmt;
 use key_path::{ KeyPath, Error as KeyPathError };
+use network::Network;
 use mnemonic::{ Error as MnemonicError };
 
 #[derive(Debug)]
@@ -39,8 +40,10 @@ impl From<KeyPathError> for Error {
 
 impl std::error::Error for Error {}
 
-pub trait PrivateKey {
-  fn from_data(data: &[u8]) -> Result<Self, Error> where Self: Sized;
+pub trait KeychainKey {
+  fn network(&self) -> Network;
+
+  fn address(&self, path: &KeyPath) -> Result<Vec<u8>, Error>;
 
   fn pub_key(&self, path: &KeyPath) -> Result<Vec<u8>, Error>;
 
@@ -48,7 +51,7 @@ pub trait PrivateKey {
 
   fn verify(&self, data: &[u8], signature: &[u8], path: &KeyPath) -> Result<bool, Error>;
 
-  fn boxed(self) -> Box<PrivateKey> where Self: Sized + 'static {
+  fn boxed(self) -> Box<KeychainKey> where Self: Sized + 'static {
     Box::new(self)
   }
 }
