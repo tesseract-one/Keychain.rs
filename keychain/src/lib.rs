@@ -10,6 +10,17 @@ extern crate rand;
 #[cfg(feature = "cardano")]
 extern crate ed25519_bip32;
 
+#[cfg(any(feature = "ethereum", feature = "bitcoin"))]
+extern crate secp256k1;
+#[cfg(any(feature = "ethereum", feature = "bitcoin"))]
+extern crate byteorder;
+#[cfg(any(feature = "ethereum", feature = "bitcoin"))]
+extern crate num_bigint;
+#[cfg(any(feature = "ethereum", feature = "bitcoin"))]
+extern crate num_traits;
+#[cfg(any(feature = "ethereum", feature = "bitcoin"))]
+extern crate ripemd160;
+
 // Internal modules
 mod data;
 mod key_factory;
@@ -22,6 +33,8 @@ mod network;
 mod entropy;
 mod error;
 
+#[cfg(any(feature = "ethereum", feature = "bitcoin"))]
+mod secp_wallet;
 
 // Public Modules
 pub mod networks;

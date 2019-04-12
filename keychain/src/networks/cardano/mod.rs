@@ -8,5 +8,6 @@ impl Network {
   pub const CARDANO: Network = Network { code: key_path::BIP44_COIN_TYPE };
 }
 
+pub use self::key::{ KeyError as PrivateKeyError };
 pub use self::factory::KeyFactory;
 pub use self::key_path::KeyPath;

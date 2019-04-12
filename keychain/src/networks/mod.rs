@@ -5,8 +5,8 @@ pub mod cardano;
 // #[cfg(feature = "bitcoin")]
 // pub mod bitcoin;
 
-// #[cfg(feature = "ethereum")]
-// pub mod ethereum;
+#[cfg(feature = "ethereum")]
+pub mod ethereum;
 
 use super::key_factory::KeyFactory;
 
@@ -15,6 +15,10 @@ pub fn all_networks<'a>() -> Vec<Box<KeyFactory>> {
   #[cfg(feature = "cardano")]
   {
     networks.push(cardano::KeyFactory::boxed());
+  }
+  #[cfg(feature = "ethereum")]
+  {
+    networks.push(ethereum::KeyFactory::boxed());
   }
   networks
 }

@@ -6,9 +6,6 @@ pub struct Network {
 }
 
 impl Network {
-  #[cfg(feature = "ethereum")]
-  pub const ETHEREUM : Network = Network { code: 0x8000003c };
-
   pub fn all() -> Vec<Network> {
     let mut types: Vec<Network> = Vec::new();
     #[cfg(feature = "cardano")]

@@ -13,7 +13,15 @@ serde = "1.0"
 serde_derive = "1.0"
 serde_json = "1.0"
 
+# cardano
 ed25519-bip32 = { git = "https://github.com/input-output-hk/rust-cardano.git", branch = "master", optional = true }
+
+# ethereum and bitcoin
+libsecp256k1 = { version = "0.2", optional = true }
+byteorder = { version = "1", optional = true }
+num-bigint = { version = "0.2", optional = true }
+num-traits = { version = "0.2", optional = true }
+ripemd160 = { version = "0.8", optional = true }
 
 [dev-dependencies]
 unicode-normalization = "0.1"
@@ -30,10 +38,10 @@ default = ["cardano", "ethereum", "bitcoin"]
 cardano = ["ed25519-bip32"]
 
 # ethereum network
-ethereum = []
+ethereum = ["libsecp256k1", "byteorder", "num-bigint", "num-traits", "ripemd160"]
 
 # bitcoin network
-bitcoin = []
+bitcoin = ["libsecp256k1", "byteorder", "num-bigint", "num-traits", "ripemd160"]
 
 # enables custom networks support
 custom-networks = []
