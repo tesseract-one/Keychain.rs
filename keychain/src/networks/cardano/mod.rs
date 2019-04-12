@@ -1,7 +1,12 @@
-mod private_key;
-mod network;
+mod factory;
+mod key;
 mod key_path;
-mod hdwallet;
 
-pub use self::network::Network;
+use network::Network;
+
+impl Network {
+  pub const CARDANO: Network = Network { code: key_path::BIP44_COIN_TYPE };
+}
+
+pub use self::factory::KeyFactory;
 pub use self::key_path::KeyPath;

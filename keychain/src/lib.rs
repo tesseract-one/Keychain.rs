@@ -7,6 +7,9 @@ extern crate serde_json;
 extern crate cryptoxide;
 extern crate rand;
 
+#[cfg(feature = "cardano")]
+extern crate ed25519_bip32;
+
 // Internal modules
 mod data;
 mod key_factory;

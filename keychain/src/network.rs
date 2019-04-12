@@ -2,13 +2,10 @@ use std::fmt;
 
 #[derive(Debug, Copy, Clone, Hash, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Network {
-  code: u32
+  pub code: u32
 }
 
 impl Network {
-  #[cfg(feature = "cardano")]
-  pub const CARDANO : Network = Network { code: 0x80000717 };
-
   #[cfg(feature = "ethereum")]
   pub const ETHEREUM : Network = Network { code: 0x8000003c };
 
@@ -23,10 +20,6 @@ impl Network {
       types.push(Network::ETHEREUM);
     }
     types
-  }
-
-  pub fn code(&self) -> u32 {
-    self.code
   }
 }
 

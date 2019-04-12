@@ -2,19 +2,17 @@ use std::collections::HashMap;
 
 use error::Error;
 use network::Network;
-use key::KeychainKey;
+use key::Key;
 use keychain::Keychain;
-use key_factory::KeychainKeyFactory;
+use key_factory::KeyFactory;
 use networks::all_networks;
 use entropy::{ Entropy, OsEntropy };
 use mnemonic::{ generate as generate_mnemonic, Language, seed_from_mnemonic };
 use util::crypt;
 use data::{ VersionedData, WalletDataV1 };
 
-pub type Factories = HashMap<Network, Box<KeychainKeyFactory>>;
-
 pub struct KeychainManager {
-  factories: Factories,
+  factories: HashMap<Network, Box<KeyFactory>>,
   random: Box<Entropy>,
   seed_size: usize
 }
@@ -25,7 +23,7 @@ impl KeychainManager {
   }
 
   pub fn with_networks(networks: &[Network]) -> Result<Self, Error> {
-    let filtered: Vec<Box<KeychainKeyFactory>> = all_networks()
+    let filtered: Vec<Box<KeyFactory>> = all_networks()
       .into_iter()
       .filter(|network| {
         let ntype = network.network();
@@ -37,7 +35,7 @@ impl KeychainManager {
 
   #[cfg(feature = "custom-networks")]
   pub fn with_factories(
-    factories: Vec<Box<KeychainKeyFactory>>
+    factories: Vec<Box<KeyFactory>>
   ) -> Result<Self, Error> {
     Self::with_factory_objs(factories)
   }
@@ -46,7 +44,7 @@ impl KeychainManager {
     self.factories.contains_key(nt)
   }
 
-  pub fn get_key_factory<'a>(&'a self, nt: &Network) -> Option<&'a KeychainKeyFactory> {
+  pub fn get_key_factory<'a>(&'a self, nt: &Network) -> Option<&'a KeyFactory> {
     self.factories.get(nt).map(|n| n.as_ref())
   }
 
@@ -77,7 +75,7 @@ impl KeychainManager {
           })
       })
       .and_then(|pkeys| {
-        let mut keys: Vec<Box<KeychainKey>> = Vec::new();
+        let mut keys: Vec<Box<Key>> = Vec::new();
         let mut data: HashMap<Network, Vec<u8>> = HashMap::new();
         for (network, key, key_data) in pkeys {
           keys.push(key);
@@ -146,11 +144,11 @@ impl KeychainManager {
 
 // Private methods
 impl KeychainManager {
-  fn with_factory_objs(factories: Vec<Box<KeychainKeyFactory>>) -> Result<Self, Error> {
+  fn with_factory_objs(factories: Vec<Box<KeyFactory>>) -> Result<Self, Error> {
     Self::calculate_seed_size(&factories)
       .and_then(|seed| OsEntropy::new().map(|rnd| (seed, rnd)).map_err(|err| Error::EntropyGeneratorError(err)))
       .map(|(seed_size, random)| {
-        let map: HashMap<Network, Box<KeychainKeyFactory>> =
+        let map: HashMap<Network, Box<KeyFactory>> =
           factories.into_iter().map(|ft| { (ft.network(), ft) }).collect();
         Self { 
           seed_size,
@@ -160,7 +158,7 @@ impl KeychainManager {
       })
   }
 
-  fn calculate_seed_size(factories: &[Box<KeychainKeyFactory>]) -> Result<usize, Error> {
+  fn calculate_seed_size(factories: &[Box<KeyFactory>]) -> Result<usize, Error> {
     let mut min = 0;
     let mut max = std::usize::MAX;
     for factory in factories.into_iter() {

@@ -1,16 +1,16 @@
 use std::collections::HashMap;
 use network::Network;
 use key_path::KeyPath;
-use key::KeychainKey;
+use key::Key;
 use error::Error;
 
 pub struct Keychain {
-  keys: HashMap<Network, Box<KeychainKey>>
+  keys: HashMap<Network, Box<Key>>
 }
 
 impl Keychain {
-  pub fn new(keys: Vec<Box<KeychainKey>>) -> Self {
-    let converted: HashMap<Network, Box<KeychainKey>> = keys
+  pub fn new(keys: Vec<Box<Key>>) -> Self {
+    let converted: HashMap<Network, Box<Key>> = keys
       .into_iter()
       .map(|key| { (key.network(), key) })
       .collect();
@@ -55,7 +55,7 @@ impl Keychain {
 }
 
 impl Keychain {
-  fn _pk<'a>(&'a self, network: &Network) -> Result<(&'a KeychainKey), Error> {
+  fn _pk<'a>(&'a self, network: &Network) -> Result<(&'a Key), Error> {
     match self.keys.get(network) {
       None => Err(Error::KeyDoesNotExist(network.clone())),
       Some(key) => Ok(key.as_ref())

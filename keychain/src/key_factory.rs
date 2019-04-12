@@ -1,5 +1,5 @@
 use network::Network;
-use key::{ KeychainKey, Error as KeyError };
+use key::{ Key, Error as KeyError };
 
 #[derive(Debug, Copy, Clone)]
 pub struct SeedSize {
@@ -17,14 +17,14 @@ impl SeedSize {
   }
 }
 
-pub trait KeychainKeyFactory {
+pub trait KeyFactory {
   fn new() -> Self where Self: Sized;
 
   fn network(&self) -> Network;
 
   fn seed_size(&self) -> SeedSize;
 
-  fn key_from_data(&self, data: &[u8]) -> Result<Box<KeychainKey>, KeyError>;
+  fn key_from_data(&self, data: &[u8]) -> Result<Box<Key>, KeyError>;
 
   fn key_data_from_seed(&self, seed: &[u8]) -> Result<Vec<u8>, KeyError>;
 
