@@ -8,7 +8,7 @@ use key_factory::KeyFactory;
 use networks::all_networks;
 use entropy::{ Entropy, OsEntropy };
 use mnemonic::{ generate as generate_mnemonic, Language, seed_from_mnemonic };
-use util::crypt;
+use crypt;
 use data::{ VersionedData, WalletDataV1 };
 
 pub struct KeychainManager {

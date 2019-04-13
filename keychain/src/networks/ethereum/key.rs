@@ -4,7 +4,7 @@ use super::key_path::BIP44_COIN_TYPE;
 use network::Network;
 use bip39;
 
-use secp_wallet::XPrv;
+use secp256k1_bip32::XPrv;
 
 pub struct Key {
   xprv: XPrv

@@ -1,0 +1,17 @@
+[package]
+name = "bip39"
+version = "0.0.1"
+authors = ["Tesseract Systems, Inc. <info@tesseract.one>"]
+license = "Apache-2.0"
+description = "Rust Bip39 mnemonic implementation"
+keywords = [ "Bip39", "Mnemonic" ]
+
+[dependencies]
+cryptoxide = "0.1"
+
+[dev-dependencies]
+unicode-normalization = "0.1"
+
+[lib]
+name = "bip39"
+path = "src/lib.rs"

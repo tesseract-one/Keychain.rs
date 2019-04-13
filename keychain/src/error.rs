@@ -3,7 +3,7 @@ use network::Network;
 use data::{ Error as DataError };
 use key::{ Error as KeyError };
 use mnemonic::{ Error as MnemonicError };
-use util::crypt::{ DecryptError as CryptError };
+use crypt::{ DecryptError as CryptError };
 use std::error::{ Error as AnyError };
 use std::fmt;
 

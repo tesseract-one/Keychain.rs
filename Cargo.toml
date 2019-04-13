@@ -1,4 +1,6 @@
 [workspace]
 members = [
-  "keychain"
+  "keychain",
+  "bip39",
+  "secp256k1_bip32"
 ]

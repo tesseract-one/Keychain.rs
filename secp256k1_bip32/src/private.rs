@@ -7,7 +7,6 @@ use cryptoxide::sha3::Sha3;
 use ripemd160::{ Ripemd160, Digest as RipeDigest };
 use secp256k1::{ SecretKey, PublicKey, Message, util, sign };
 use byteorder::{ BigEndian, WriteBytesExt, ByteOrder };
-use key_path::BIP44_SOFT_UPPER_BOUND;
 use num_bigint::BigUint;
 use num_traits::{ Num, Zero };
 
@@ -17,6 +16,7 @@ use super::public::XPub;
 const HMAC_KEY: &[u8] = b"Bitcoin seed";
 const KEY_DATA_SIZE: usize = 77;
 const ENTROPY_SIZE: usize = 64;
+const BIP44_SOFT_UPPER_BOUND: u32 = 0x80000000;
 
 lazy_static! {
   static ref CURVE_ORDER: BigUint = BigUint::from_str_radix(
