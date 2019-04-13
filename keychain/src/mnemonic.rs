@@ -74,6 +74,7 @@ impl From<bip39::Error> for Error {
   }
 }
 
+pub const SEED_SIZE: usize = bip39::SEED_SIZE;
 
 pub fn generate(size: usize, language: Language, entropy: &Entropy) -> Result<String, Error> {
   bip39::Type::from_entropy_size(size).map(|etype| {
@@ -90,19 +91,19 @@ pub fn generate(size: usize, language: Language, entropy: &Entropy) -> Result<St
 
 pub fn seed_from_mnemonic(mnemonic: &str, unique: &str, size: usize, language: Language) -> Result<Vec<u8>, Error> {
   let size_words = size / 32 * 3;
-    let words = mnemonic.split(" ").filter(|part| part.len() > 0).collect::<Vec<&str>>();
-    if words.len() > size_words {
-      return Err(Error::MnemonicToLong(words.len(), size_words));
-    }
-    if words.len() < size_words {
-      return Err(Error::MnemonicToShort(words.len(), size_words));
-    }
-    if words.len() % 3 != 0 {
-      return Err(Error::WrongNumberOfWords(words.len()));
-    }
-    bip39::MnemonicString::new(language.to_dict(), mnemonic.to_owned())
-      .map_err(|err| err.into())
-      .map(|mstring| {
-        Vec::from(bip39::Seed::from_mnemonic_string(&mstring, unique.as_bytes()).as_ref())
-      })
+  let words = mnemonic.split(" ").filter(|part| part.len() > 0).collect::<Vec<&str>>();
+  if words.len() > size_words {
+    return Err(Error::MnemonicToLong(words.len(), size_words));
   }
+  if words.len() < size_words {
+    return Err(Error::MnemonicToShort(words.len(), size_words));
+  }
+  if words.len() % 3 != 0 {
+    return Err(Error::WrongNumberOfWords(words.len()));
+  }
+  bip39::MnemonicString::new(language.to_dict(), mnemonic.to_owned())
+    .map_err(|err| err.into())
+    .map(|mstring| {
+      Vec::from(bip39::Seed::from_mnemonic_string(&mstring, unique.as_bytes()).as_ref())
+    })
+}

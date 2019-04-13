@@ -7,7 +7,7 @@ use keychain::Keychain;
 use key_factory::KeyFactory;
 use networks::all_networks;
 use entropy::{ Entropy, OsEntropy };
-use mnemonic::{ generate as generate_mnemonic, Language, seed_from_mnemonic };
+use mnemonic::{ generate as generate_mnemonic, Language, seed_from_mnemonic, SEED_SIZE };
 use crypt;
 use data::{ VersionedData, WalletDataV1 };
 
@@ -54,7 +54,7 @@ impl KeychainManager {
   }
 
   pub fn keychain_from_seed(&self, seed: &[u8], password: &str) -> Result<(Keychain, Vec<u8>), Error> {
-    if seed.len() != 64 {
+    if seed.len() != SEED_SIZE {
       return Err(Error::InvalidSeedSize(seed.len()))
     }
     self.factories.values()
