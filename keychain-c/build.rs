@@ -16,15 +16,15 @@ fn main() {
     file.write_all(b"/* Library built with these features: */\n\n").unwrap();
     #[cfg(feature = "cardano")]
     {
-      file.write_all(b"#define WITH_FEATURE_CARDANO\t\t1\n").unwrap();
+      file.write_all(b"#define WITH_FEATURE_CARDANO\t1\n").unwrap();
     }
     #[cfg(feature = "ethereum")]
     {
-      file.write_all(b"#define WITH_FEATURE_ETHEREUM\t\t1\n").unwrap();
+      file.write_all(b"#define WITH_FEATURE_ETHEREUM\t1\n").unwrap();
     }
     #[cfg(feature = "bitcoin")]
     {
-      file.write_all(b"#define WITH_FEATURE_BITCOIN\t\t1\n").unwrap();
+      file.write_all(b"#define WITH_FEATURE_BITCOIN\t1\n").unwrap();
     }
     #[cfg(feature = "backup")]
     {
