@@ -1,5 +1,5 @@
 use keychain::{ Error as RError };
-use std::os::raw::c_uchar;
+use std::os::raw::c_char;
 use std::error::{ Error as IError };
 use libc::{ malloc, free, c_void };
 
@@ -127,7 +127,7 @@ pub unsafe extern "C" fn delete_data(data: &mut Data) {
   data.free();
 }
 
-pub type PChar = *const c_uchar;
+pub type PChar = *const c_char;
 
 pub trait ToCString {
   fn to_cstr(&self) -> PChar; 
@@ -136,11 +136,11 @@ pub trait ToCString {
 impl ToCString for &str {
   fn to_cstr(&self) -> PChar {
     let len = self.len() + 1;
-    let ptr = unsafe { malloc(len) as *mut c_uchar };
+    let ptr = unsafe { malloc(len) as *mut u8 };
     let ref mut slice = unsafe { std::slice::from_raw_parts_mut(ptr, len) };
     slice.copy_from_slice(self.as_bytes());
     slice[len-1] = b'\0';
-    ptr
+    ptr as PChar
   } 
 }
 
