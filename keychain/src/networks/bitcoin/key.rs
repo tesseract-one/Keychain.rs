@@ -14,11 +14,7 @@ impl Key {
   pub fn from_data(data: &[u8]) -> Result<Self, Error> {
     XPrv::from_data(data)
       .map_err(|err| err.into())
-      .map(|pk|
-        Self {
-          xprv: pk
-        }
-      )
+      .map(|pk| Self { xprv: pk })
   }
 
   pub fn data_from_seed(seed: &bip39::Seed) -> Result<Vec<u8>, Error> {
@@ -51,12 +47,6 @@ impl Key {
 impl IKey for Key {
   fn network(&self) -> Network {
     Network::BITCOIN
-  }
-
-  fn address(&self, path: &KeyPath) -> Result<Vec<u8>, Error> {
-    self.derive_private(path)
-      .map_err(|err| err.into())
-      .map(|pk| pk.public().address())
   }
 
   fn pub_key(&self, path: &KeyPath) -> Result<Vec<u8>, Error> {

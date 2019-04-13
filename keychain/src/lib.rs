@@ -21,6 +21,10 @@ extern crate num_traits;
 #[cfg(any(feature = "ethereum", feature = "bitcoin"))]
 extern crate ripemd160;
 
+#[cfg(any(feature = "ethereum", feature = "bitcoin"))]
+#[macro_use]
+extern crate lazy_static;
+
 // Internal modules
 mod data;
 mod key_factory;

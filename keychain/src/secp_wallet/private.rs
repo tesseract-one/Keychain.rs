@@ -5,7 +5,7 @@ use cryptoxide::digest::Digest;
 use cryptoxide::sha2::{ Sha512, Sha256 };
 use cryptoxide::sha3::Sha3;
 use ripemd160::{ Ripemd160, Digest as RipeDigest };
-use secp256k1;
+use secp256k1::{ SecretKey, PublicKey, Message, util, sign };
 use byteorder::{ BigEndian, WriteBytesExt, ByteOrder };
 use key_path::BIP44_SOFT_UPPER_BOUND;
 use num_bigint::BigUint;
@@ -18,12 +18,15 @@ const HMAC_KEY: &[u8] = b"Bitcoin seed";
 const KEY_DATA_SIZE: usize = 77;
 const ENTROPY_SIZE: usize = 64;
 
-fn curve_order() -> BigUint {
-  BigUint::from_str_radix("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141", 16).unwrap()
+lazy_static! {
+  static ref CURVE_ORDER: BigUint = BigUint::from_str_radix(
+    "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141", 16
+  ).unwrap();
 }
 
+
 pub struct XPrv {
-  key: secp256k1::SecretKey,
+  key: SecretKey,
   chaincode: [u8; 32],
   parent_fingerprint: [u8; 4],
   depth: u8,
@@ -33,7 +36,7 @@ pub struct XPrv {
 impl XPrv {
   pub fn from_data(data: &[u8]) -> Result<Self, KeyError> {
     if data.len() != KEY_DATA_SIZE {
-      return Err(KeyError::InvalidDataSize(data.len(), KEY_DATA_SIZE))
+      return Err(KeyError::InvalidDataSize(data.len(), KEY_DATA_SIZE));
     }
 
     let mut sha256 = Sha256::new();
@@ -55,10 +58,10 @@ impl XPrv {
     let mut chaincode = [0u8; 32];
     chaincode.copy_from_slice(&data[9..40]);
 
-    secp256k1::SecretKey::parse_slice(&data[41..72])
+    SecretKey::parse_slice(&data[41..72])
       .map_err(|err| err.into())
       .and_then(|private_key| {
-        let pub_key = secp256k1::PublicKey::from_secret_key(&private_key);
+        let pub_key = PublicKey::from_secret_key(&private_key);
         if pub_key.serialize()[0] != 0x04 {
           return Err(KeyError::InvalidPublicKey);
         }
@@ -81,7 +84,7 @@ impl XPrv {
     let result = hmac.result();
     let entropy = result.code();
     if entropy.len() < ENTROPY_SIZE {
-      return Err(KeyError::InvalidEntropySize(entropy.len()))
+      return Err(KeyError::InvalidEntropySize(entropy.len()));
     }
 
     let mut i_l = [0u8; 32];
@@ -89,12 +92,12 @@ impl XPrv {
     i_l.copy_from_slice(&entropy[0..31]);
     i_r.copy_from_slice(&entropy[32..63]);
 
-    secp256k1::SecretKey::parse(&i_l)
+    SecretKey::parse(&i_l)
       .map_err(|err| err.into())
       .and_then(|private_key| {
-        let pub_key = secp256k1::PublicKey::from_secret_key(&private_key);
+        let pub_key = PublicKey::from_secret_key(&private_key);
         if pub_key.serialize()[0] != 0x04 {
-          return Err(KeyError::InvalidPublicKey)
+          return Err(KeyError::InvalidPublicKey);
         }
         Ok(private_key)
       })
@@ -102,7 +105,7 @@ impl XPrv {
   }
 
   pub fn public(&self) -> XPub {
-    XPub::new(secp256k1::PublicKey::from_secret_key(&self.key))
+    XPub::new(PublicKey::from_secret_key(&self.key))
   }
 
   pub fn serialize(&self) -> Vec<u8> {
@@ -130,19 +133,19 @@ impl XPrv {
   pub fn sign(&self, data: &[u8]) -> Result<Vec<u8>, KeyError> {
     let mut sha3 = Sha3::keccak256();
     sha3.input(data);
-    let mut out = [0u8; secp256k1::util::MESSAGE_SIZE];
+    let mut out = [0u8; util::MESSAGE_SIZE];
     sha3.result(&mut out);
 
-    let message = secp256k1::Message::parse(&out);
+    let message = Message::parse(&out);
 
-    secp256k1::sign(&message, &self.key)
+    sign(&message, &self.key)
       .map_err(|err| err.into())
       .and_then(|(signature, recovery)| {
         let rec_id = recovery.serialize();
         if rec_id != 0 && rec_id != 1 {
           return Err(KeyError::InvalidRecoveryId);
         }
-        let mut data = Vec::with_capacity(secp256k1::util::SIGNATURE_SIZE + 1);
+        let mut data = Vec::with_capacity(util::SIGNATURE_SIZE + 1);
         data.extend_from_slice(&signature.r.b32());
         data.extend_from_slice(&signature.s.b32());
         data.push(rec_id);
@@ -157,7 +160,7 @@ impl XPrv {
     let mut hmac = Hmac::new(Sha512::new(), &self.chaincode);
 
     if index >= BIP44_SOFT_UPPER_BOUND {
-      let mut input = Vec::with_capacity(secp256k1::util::SECRET_KEY_SIZE + 1 + 4);
+      let mut input = Vec::with_capacity(util::SECRET_KEY_SIZE + 1 + 4);
       input.push(0x00);
       input.extend_from_slice(&self.key.serialize());
       if input.write_u32::<BigEndian>(index).is_err() {
@@ -165,7 +168,7 @@ impl XPrv {
       }
       hmac.input(&input);
     } else {
-      let mut input = Vec::with_capacity(secp256k1::util::SECRET_KEY_SIZE + 4);
+      let mut input = Vec::with_capacity(util::SECRET_KEY_SIZE + 4);
       input.extend_from_slice(&self.key.serialize());
       if input.write_u32::<BigEndian>(index).is_err() {
         return Err(KeyError::InternalError);
@@ -177,16 +180,16 @@ impl XPrv {
     let entropy = result.code();
 
     if entropy.len() < ENTROPY_SIZE {
-      return Err(KeyError::InvalidEntropySize(entropy.len()))
+      return Err(KeyError::InvalidEntropySize(entropy.len()));
     }
-
-    let curve_order_bn = curve_order();
 
     let mut chaincode = [0u8; 32];
     chaincode.copy_from_slice(&entropy[0..31]);
 
     let bn = BigUint::from_bytes_be(&entropy[32..63]);
-    if bn > curve_order_bn {
+    let curve_order = CURVE_ORDER.clone();
+
+    if bn > curve_order {
       if index < std::u32::MAX {
         return self.derive(index + 1);
       } else {
@@ -194,7 +197,7 @@ impl XPrv {
       }
     }
 
-    let new_pk = (bn + BigUint::from_bytes_be(&self.key.serialize())) % curve_order_bn;
+    let new_pk = (bn + BigUint::from_bytes_be(&self.key.serialize())) % curve_order;
     if new_pk.is_zero() {
       if index < std::u32::MAX {
         return self.derive(index + 1);
@@ -203,19 +206,19 @@ impl XPrv {
       }
     }
     let pk_bytes = new_pk.to_bytes_be();
-    let pk: Vec<u8> = if pk_bytes.len() == secp256k1::util::SECRET_KEY_SIZE {
+    let pk: Vec<u8> = if pk_bytes.len() == util::SECRET_KEY_SIZE {
       pk_bytes
     } else {
-      let mut vec = Vec::with_capacity(secp256k1::util::SECRET_KEY_SIZE);
-      vec.extend_from_slice(&vec![0u8; secp256k1::util::SECRET_KEY_SIZE - pk_bytes.len()]);
+      let mut vec = Vec::with_capacity(util::SECRET_KEY_SIZE);
+      vec.extend_from_slice(&vec![0u8; util::SECRET_KEY_SIZE - pk_bytes.len()]);
       vec.extend_from_slice(&pk_bytes);
       vec
     };
 
-    secp256k1::SecretKey::parse_slice(&pk)
+    SecretKey::parse_slice(&pk)
       .map_err(|err| err.into())
       .and_then(|private_key| {
-        let pub_key = secp256k1::PublicKey::from_secret_key(&private_key);
+        let pub_key = PublicKey::from_secret_key(&private_key);
         if pub_key.serialize()[0] != 0x04 {
           return Err(KeyError::InvalidPublicKey)
         }

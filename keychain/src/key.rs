@@ -63,8 +63,6 @@ impl std::error::Error for Error {}
 pub trait Key {
   fn network(&self) -> Network;
 
-  fn address(&self, path: &KeyPath) -> Result<Vec<u8>, Error>;
-
   fn pub_key(&self, path: &KeyPath) -> Result<Vec<u8>, Error>;
 
   fn sign(&self, data: &[u8], path: &KeyPath) -> Result<Vec<u8>, Error>;

@@ -110,10 +110,6 @@ impl IKey for Key {
     Network::CARDANO
   }
 
-  fn address(&self, path: &KeyPath) -> Result<Vec<u8>, Error> {
-    self.pub_key(path)
-  }
-
   fn pub_key(&self, path: &KeyPath) -> Result<Vec<u8>, Error> {
     self.derive_private(path)
       .map_err(|err| err.into())

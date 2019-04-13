@@ -16,11 +16,7 @@ impl Key {
       .and_then(|pk| pk.derive(BIP44_PURPOSE))
       .and_then(|pk| pk.derive(BIP44_COIN_TYPE))
       .map_err(|err| err.into())
-      .map(|pk|
-        Self {
-          xprv: pk
-        }
-      )
+      .map(|pk| Self { xprv: pk })
   }
 
   pub fn data_from_seed(seed: &bip39::Seed) -> Result<Vec<u8>, Error> {
@@ -54,12 +50,6 @@ impl Key {
 impl IKey for Key {
   fn network(&self) -> Network {
     Network::ETHEREUM
-  }
-
-  fn address(&self, path: &KeyPath) -> Result<Vec<u8>, Error> {
-    self.derive_private(path)
-      .map_err(|err| err.into())
-      .map(|pk| pk.public().address())
   }
 
   fn pub_key(&self, path: &KeyPath) -> Result<Vec<u8>, Error> {

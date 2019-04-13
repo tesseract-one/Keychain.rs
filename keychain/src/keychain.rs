@@ -21,14 +21,6 @@ impl Keychain {
     self.keys.keys().cloned().collect()
   }
 
-  pub fn address(&self, network: &Network, path: &KeyPath) -> Result<Vec<u8>, Error> {
-    self._pk(network).and_then(|key| {
-      key
-        .address(path)
-        .map_err(|err| { Error::from_key_error(network, err) })
-    })
-  }
-
   pub fn pub_key(&self, network: &Network, path: &KeyPath) -> Result<Vec<u8>, Error> {
     self._pk(network).and_then(|key| {
       key
