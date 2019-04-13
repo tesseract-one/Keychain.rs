@@ -1,0 +1,8 @@
+include_version = true
+tab_width = 2
+language = "C"
+documentation_style = "C"
+
+[parse]
+parse_deps = true
+include = ["tesseract-keychain"]

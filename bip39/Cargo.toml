@@ -11,6 +11,7 @@ cryptoxide = "0.1"
 
 [dev-dependencies]
 unicode-normalization = "0.1"
+rand = "0.6"
 
 [lib]
 name = "bip39"

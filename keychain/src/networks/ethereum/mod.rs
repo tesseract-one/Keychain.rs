@@ -5,7 +5,7 @@ mod key_path;
 use network::Network;
 
 impl Network {
-  pub const ETHEREUM: Network = Network { code: key_path::BIP44_COIN_TYPE };
+  pub const ETHEREUM: Network = Network(key_path::BIP44_COIN_TYPE);
 }
 
 pub use self::factory::KeyFactory;

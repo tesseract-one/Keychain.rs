@@ -1,0 +1,19 @@
+[package]
+name = "tesseract-keychain-c"
+version = "0.0.1"
+authors = ["Tesseract Systems, Inc. <info@tesseract.one>"]
+license = "Apache-2.0"
+description = "Tesseract Multi-Network Keychain C bindings"
+keywords = [ "Wallet", "Tesseract", "Cardano", "Ethereum", "Bitcoin", "C" ]
+build = "build.rs"
+
+[dependencies]
+tesseract-keychain = { path = "../keychain" }
+
+[build-dependencies]
+cbindgen = "0.8"
+
+[lib]
+name = "rust_keychain"
+path = "src/lib.rs"
+crate-type = ["staticlib", "cdylib"]

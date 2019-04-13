@@ -5,7 +5,7 @@ mod key_path;
 use network::Network;
 
 impl Network {
-  pub const CARDANO: Network = Network { code: key_path::BIP44_COIN_TYPE };
+  pub const CARDANO: Network = Network(key_path::BIP44_COIN_TYPE);
 }
 
 pub use self::key::{ KeyError as PrivateKeyError };

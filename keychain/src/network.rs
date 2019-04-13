@@ -1,9 +1,7 @@
 use std::fmt;
 
 #[derive(Debug, Copy, Clone, Hash, Eq, PartialEq, Serialize, Deserialize)]
-pub struct Network {
-  pub code: u32
-}
+pub struct Network(pub u32);
 
 impl Network {
   pub fn all() -> Vec<Network> {
@@ -22,6 +20,6 @@ impl Network {
 
 impl fmt::Display for Network {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    return write!(f, "Network({})", self.code);
+    return write!(f, "Network({})", self.0);
   }
 }

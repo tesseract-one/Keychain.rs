@@ -5,7 +5,7 @@ mod key_path;
 use network::Network;
 
 impl Network {
-  pub const BITCOIN: Network = Network { code: key_path::COIN_TYPE };
+  pub const BITCOIN: Network = Network(key_path::COIN_TYPE);
 }
 
 pub use self::factory::KeyFactory;
