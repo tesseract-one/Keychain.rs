@@ -12,6 +12,19 @@
 #include "keychain_build_config.h"
 
 typedef enum {
+  WrongPassword = 0,
+  NotEnoughData = 1,
+  CantCalculateSeedSize = 2,
+  DataError = 3,
+  EntropyGeneratorError = 4,
+  InvalidSeedSize = 5,
+  KeyDoesNotExist = 6,
+  KeyError = 7,
+  KeyPathError = 8,
+  MnemonicError = 9,
+} ErrorType;
+
+typedef enum {
   English = 0,
   French = 1,
   Japanese = 2,
@@ -34,7 +47,7 @@ typedef struct {
 typedef const unsigned char *PChar;
 
 typedef struct {
-  PChar id;
+  ErrorType error_type;
   PChar message;
 } Error;
 

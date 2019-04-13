@@ -1,26 +1,56 @@
 use keychain::{ Error as RError };
 use std::os::raw::c_uchar;
+use std::error::{ Error as IError };
 use libc::{ malloc, free, c_void };
 
 #[repr(C)]
+#[derive(Copy, Clone, Eq, PartialEq)]
+pub enum ErrorType {
+  WrongPassword = 0,
+  NotEnoughData = 1,
+  CantCalculateSeedSize = 2,
+  DataError = 3,
+  EntropyGeneratorError = 4,
+  InvalidSeedSize = 5,
+  KeyDoesNotExist = 6,
+  KeyError = 7,
+  KeyPathError = 8,
+  MnemonicError = 9
+}
+
+#[repr(C)]
 pub struct Error {
-  id: PChar,
+  error_type: ErrorType,
   message: PChar
 }
 
 impl Error {
-  pub fn new(_err: &RError) -> Self {
-    Self { id: std::ptr::null_mut(), message: std::ptr::null_mut() }
+  fn error_type(err: &RError) -> ErrorType {
+    match err {
+      &RError::WrongPassword => ErrorType::WrongPassword,
+      &RError::NotEnoughData => ErrorType::NotEnoughData,
+      &RError::CantCalculateSeedSize(_, _) => ErrorType::CantCalculateSeedSize,
+      &RError::DataError(_) => ErrorType::DataError,
+      &RError::EntropyGeneratorError(_) => ErrorType::EntropyGeneratorError,
+      &RError::InvalidSeedSize(_) => ErrorType::InvalidSeedSize,
+      &RError::KeyDoesNotExist(_) => ErrorType::KeyDoesNotExist,
+      &RError::KeyError(_, _) => ErrorType::KeyError,
+      &RError::KeyPathError(_) => ErrorType::KeyPathError,
+      &RError::MnemonicError(_) => ErrorType::MnemonicError
+    }
+  }
+
+  pub fn new(err: &RError) -> Self {
+    Self {
+      error_type: Self::error_type(err),
+      message: err.description().to_cstr()
+    }
   }
 
   pub fn free(&mut self) {
-    if !self.id.is_null() {
-      unsafe { free(self.id as *mut c_void); }
-    }
     if !self.message.is_null() {
       unsafe { free(self.message as *mut c_void); }
     }
-    self.id = std::ptr::null_mut();
     self.message = std::ptr::null_mut();
   }
 }
@@ -103,7 +133,7 @@ pub trait ToCString {
   fn to_cstr(&self) -> PChar; 
 }
 
-impl ToCString for String {
+impl ToCString for &str {
   fn to_cstr(&self) -> PChar {
     let len = self.len() + 1;
     let ptr = unsafe { malloc(len) as *mut c_uchar };
@@ -111,5 +141,12 @@ impl ToCString for String {
     slice.copy_from_slice(self.as_bytes());
     slice[len-1] = b'\0';
     ptr
+  } 
+}
+
+impl ToCString for String {
+  fn to_cstr(&self) -> PChar {
+    let slice: &str = self.as_ref();
+    slice.to_cstr()
   } 
 }
