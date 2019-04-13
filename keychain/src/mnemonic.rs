@@ -2,16 +2,16 @@ use bip39;
 use entropy::Entropy;
 use std::fmt;
 
-#[derive(Debug, Copy, Clone, Hash, Eq, PartialEq)]
+#[derive(Primitive, Debug, Copy, Clone, Hash, Eq, PartialEq)]
 pub enum Language {
-  English,
-  French,
-  Japanese,
-  Korean,
-  ChineseSimplified,
-  ChineseTraditional,
-  Italian,
-  Spanish
+  English = 0,
+  French = 1,
+  Japanese = 2,
+  Korean = 3,
+  ChineseSimplified = 4,
+  ChineseTraditional = 5,
+  Italian = 6,
+  Spanish = 7
 }
 
 impl Language {

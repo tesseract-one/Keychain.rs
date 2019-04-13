@@ -8,7 +8,9 @@ keywords = [ "Wallet", "Tesseract", "Cardano", "Ethereum", "Bitcoin", "C" ]
 build = "build.rs"
 
 [dependencies]
-tesseract-keychain = { path = "../keychain" }
+tesseract-keychain = { path = "../keychain", default-features = false }
+libc = "0.2"
+num-traits = "0.2"
 
 [build-dependencies]
 cbindgen = "0.8"
@@ -17,3 +19,19 @@ cbindgen = "0.8"
 name = "rust_keychain"
 path = "src/lib.rs"
 crate-type = ["staticlib", "cdylib"]
+
+[features]
+# all networks by default
+default = ["cardano", "ethereum", "bitcoin"]
+
+# cardano network
+cardano = ["tesseract-keychain/cardano"]
+
+# ethereum network
+ethereum = ["tesseract-keychain/ethereum"]
+
+# bitcoin network
+bitcoin = ["tesseract-keychain/bitcoin"]
+
+# enables backup methods
+backup = ["tesseract-keychain/backup"]

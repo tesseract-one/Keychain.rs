@@ -4,6 +4,7 @@ use data::{ Error as DataError };
 use key::{ Error as KeyError };
 use mnemonic::{ Error as MnemonicError };
 use crypt::{ DecryptError as CryptError };
+use key_path::{ Error as KeyPathError };
 use std::error::{ Error as AnyError };
 use std::fmt;
 
@@ -17,7 +18,8 @@ pub enum Error {
   DataError(DataError),
   KeyError(Network, KeyError),
   EntropyGeneratorError(OsEntropyError),
-  MnemonicError(MnemonicError)
+  MnemonicError(MnemonicError),
+  KeyPathError(KeyPathError)
 }
 
 impl fmt::Display for Error {
@@ -31,7 +33,8 @@ impl fmt::Display for Error {
       &Error::DataError(ref err) => write!(f, "Data parsing error {}", err),
       &Error::KeyError(ref nt, ref err) => write!(f, "Key error {} for network {}", err, nt),
       &Error::EntropyGeneratorError(ref err) => write!(f, "Entropy generator error {}", err),
-      &Error::MnemonicError(ref err) => write!(f, "Mnemonic error {}", err)
+      &Error::MnemonicError(ref err) => write!(f, "Mnemonic error {}", err),
+      &Error::KeyPathError(ref err) => write!(f, "Key path error {}", err)
     }
   }
 }
@@ -62,6 +65,12 @@ impl From<CryptError> for Error {
       CryptError::NotEnoughData => Error::NotEnoughData,
       CryptError::DecryptionFailed => Error::WrongPassword,
     }
+  }
+}
+
+impl From<KeyPathError> for Error {
+  fn from(err: KeyPathError) -> Self {
+    Error::KeyPathError(err)
   }
 }
 

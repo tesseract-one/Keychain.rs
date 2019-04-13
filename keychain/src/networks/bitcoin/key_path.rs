@@ -1,4 +1,4 @@
-use key_path::{ KeyPath as IKeyPath, BIP44_SOFT_UPPER_BOUND, BIP44_PURPOSE };
+use key_path::{ KeyPath as IKeyPath, BIP44_SOFT_UPPER_BOUND, BIP44_PURPOSE, Error };
 
 /// the coin type for mainnet.
 pub const COIN_TYPE : u32 = 0x80000000;
@@ -27,31 +27,31 @@ impl KeyPath {
     if testnet { COIN_TYPE_TESTNET } else { COIN_TYPE }
   }
 
-  pub fn bip44(testnet: bool, account: u32, change: u32, address: u32) -> Self {
-    KeyPath {
+  pub fn bip44(testnet: bool, account: u32, change: u32, address: u32) -> Result<Self, Error> {
+    Ok(KeyPath {
       purpose: BIP44_PURPOSE,
       coin: Self::coin(testnet),
       account: account + BIP44_SOFT_UPPER_BOUND,
       change, address
-    }
+    })
   }
 
-  pub fn bip49(testnet: bool, account: u32, change: u32, address: u32) -> Self {
-    KeyPath {
+  pub fn bip49(testnet: bool, account: u32, change: u32, address: u32) -> Result<Self, Error> {
+    Ok(KeyPath {
       purpose: BIP49_PURPOSE,
       coin: Self::coin(testnet),
       account: account + BIP44_SOFT_UPPER_BOUND,
       change, address
-    }
+    })
   }
 
-  pub fn bip84(testnet: bool, account: u32, change: u32, address: u32) -> Self {
-    KeyPath {
+  pub fn bip84(testnet: bool, account: u32, change: u32, address: u32) -> Result<Self, Error> {
+    Ok(KeyPath {
       purpose: BIP84_PURPOSE,
       coin: Self::coin(testnet),
       account: account + BIP44_SOFT_UPPER_BOUND,
       change, address
-    }
+    })
   }
 }
 
