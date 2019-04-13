@@ -27,31 +27,54 @@ impl KeyPath {
     if testnet { COIN_TYPE_TESTNET } else { COIN_TYPE }
   }
 
+  #[inline]
+  fn is_valid(account: u32, change: u32, address: u32) -> Result<(), Error> {
+    if account >= BIP44_SOFT_UPPER_BOUND {
+      return Err(Error::InvalidAccount(account));
+    }
+    if change != 0 && change != 1 {
+      return Err(Error::InvalidChange(change));
+    }
+    if address >= BIP44_SOFT_UPPER_BOUND {
+      return Err(Error::InvalidAddress(change));
+    }
+    Ok(())
+  }
+
   pub fn bip44(testnet: bool, account: u32, change: u32, address: u32) -> Result<Self, Error> {
-    Ok(KeyPath {
-      purpose: BIP44_PURPOSE,
-      coin: Self::coin(testnet),
-      account: account + BIP44_SOFT_UPPER_BOUND,
-      change, address
-    })
+    Self::is_valid(account, change, address)
+      .map(|_| 
+        KeyPath {
+          purpose: BIP44_PURPOSE,
+          coin: Self::coin(testnet),
+          account: account + BIP44_SOFT_UPPER_BOUND,
+          change, address
+        }
+      )
   }
 
   pub fn bip49(testnet: bool, account: u32, change: u32, address: u32) -> Result<Self, Error> {
-    Ok(KeyPath {
-      purpose: BIP49_PURPOSE,
-      coin: Self::coin(testnet),
-      account: account + BIP44_SOFT_UPPER_BOUND,
-      change, address
-    })
+    Self::is_valid(account, change, address)
+      .map(|_| 
+        KeyPath {
+          purpose: BIP49_PURPOSE,
+          coin: Self::coin(testnet),
+          account: account + BIP44_SOFT_UPPER_BOUND,
+          change, address
+        }
+      )
   }
 
   pub fn bip84(testnet: bool, account: u32, change: u32, address: u32) -> Result<Self, Error> {
-    Ok(KeyPath {
-      purpose: BIP84_PURPOSE,
-      coin: Self::coin(testnet),
-      account: account + BIP44_SOFT_UPPER_BOUND,
-      change, address
-    })
+    Self::is_valid(account, change, address)
+      .map(|_| 
+        KeyPath {
+          purpose: BIP84_PURPOSE,
+          coin: Self::coin(testnet),
+          account: account + BIP44_SOFT_UPPER_BOUND,
+          change, address
+        }
+      )
   }
 }
 
