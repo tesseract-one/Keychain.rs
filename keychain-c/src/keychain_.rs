@@ -28,12 +28,12 @@ impl Keychain {
 
 #[repr(C)]
 #[derive(Copy, Clone)]
-pub struct KeychainData {
+pub struct NewKeychainData {
   data: Data,
   keychain: Keychain
 }
 
-impl KeychainData {
+impl NewKeychainData {
   pub fn new(keychain: RKeychain, data: &[u8]) -> Self {
     Self {
       data: Data::from(data),

@@ -1,5 +1,5 @@
 use keychain::{ KeychainManager as RKeychainManager, Language as RLanguage };
-use keychain_::{ KeychainData, Keychain };
+use keychain_::{ NewKeychainData, Keychain };
 use std::mem;
 use std::ffi::{ c_void, CStr };
 use std::os::raw::c_char;
@@ -71,26 +71,26 @@ pub unsafe extern "C" fn keychain_manager_generate_mnemonic(
 #[no_mangle]
 pub unsafe extern "C" fn keychain_manager_keychain_from_seed(
   manager: &KeychainManager, seed: *const u8, seed_len: usize, password: PChar,
-  data: &mut KeychainData, error: &mut Error
+  data: &mut NewKeychainData, error: &mut Error
 ) -> bool {
   let seed_slice = std::slice::from_raw_parts(seed, seed_len);
   let pwd = CStr::from_ptr(password as *const c_char).to_str().unwrap();
   manager.rust()
     .keychain_from_seed(seed_slice, pwd)
-    .map(|(keychain, data)| KeychainData::new(keychain, &data))
+    .map(|(keychain, data)| NewKeychainData::new(keychain, &data))
     .response(data, error)
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn keychain_manager_keychain_from_mnemonic(
   manager: &KeychainManager, mnemonic: PChar, password: PChar, lang: Language,
-  data: &mut KeychainData, error: &mut Error
+  data: &mut NewKeychainData, error: &mut Error
 ) -> bool {
   let mnemonic = CStr::from_ptr(mnemonic as *const c_char).to_str().unwrap();
   let pwd = CStr::from_ptr(password as *const c_char).to_str().unwrap();
   manager.rust()
     .keychain_from_mnemonic(mnemonic, pwd, lang.rust())
-    .map(|(keychain, data)| KeychainData::new(keychain, &data))
+    .map(|(keychain, data)| NewKeychainData::new(keychain, &data))
     .response(data, error)
 }
 
