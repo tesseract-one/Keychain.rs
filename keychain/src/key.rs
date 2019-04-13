@@ -4,7 +4,7 @@ use network::Network;
 use mnemonic::{ Error as MnemonicError };
 
 #[cfg(any(feature = "ethereum", feature = "bitcoin"))]
-use secp_wallet::{ KeyError as SecpKeyError };
+use secp256k1_bip32::{ KeyError as SecpKeyError };
 
 #[derive(Debug)]
 pub enum Error {
