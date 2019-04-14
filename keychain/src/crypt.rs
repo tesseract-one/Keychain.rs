@@ -32,7 +32,11 @@ pub enum DecryptError {
 
 impl std::fmt::Display for DecryptError {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-    write!(f, "Decrypt Error: {:?}", self)
+    match self {
+      &DecryptError::NotEnoughData => write!(f, "Not enough data for decryption."),
+      &DecryptError::DecryptionFailed => write!(f, "Decryption failed. Check your key")
+    }
+    
   }
 }
 
