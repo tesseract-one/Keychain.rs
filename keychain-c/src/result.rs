@@ -1,6 +1,5 @@
 use keychain::{ Error as RError };
 use std::os::raw::c_char;
-use std::error::{ Error as IError };
 use std::ffi::{ CStr, CString };
 
 pub trait Ptr<T: ?Sized> {
@@ -64,7 +63,7 @@ impl ErrorPtr {
   pub fn new(err: &RError) -> Self {
     Self {
       error_type: Self::error_type(err),
-      message: err.description().to_cstr()
+      message: format!("{}", err).to_cstr()
     }
   }
 }
