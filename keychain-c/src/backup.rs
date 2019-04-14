@@ -1,11 +1,9 @@
 use manager::KeychainManagerPtr;
 use network::Network;
-use result::{ DataPtr, CResult, PChar, ErrorPtr, ArrayPtr, Ptr };
+use result::{ DataPtr, CResult, CharPtr, ErrorPtr, ArrayPtr, Ptr };
 use keychain::{ Network as RNetwork };
 use std::os::raw::c_char;
 use std::ffi::CStr;
-use libc::{ malloc, free, c_void };
-use std::mem;
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -28,12 +26,11 @@ impl ArrayPtr<KeyBackupElem> for KeyBackupPtr {
 
   unsafe fn free(&mut self) {
     if self.ptr.is_null() { return; }
-    let kbslice = std::slice::from_raw_parts_mut(self.ptr as *mut KeyBackupElem, self.count);
-    for elem in kbslice.into_iter() {
+    let vec = Vec::from_raw_parts(self.ptr as *mut KeyBackupElem, self.count, self.count);
+    for mut elem in vec.into_iter() {
       elem.data.free();
     }
-    free(self.ptr as *mut c_void);
-    self.ptr = std::ptr::null_mut();
+    self.ptr = std::ptr::null();
   }
 }
 
@@ -44,16 +41,17 @@ impl KeyBackupPtr {
         KeyBackupElem { network: net.into(), data: DataPtr::from(data) }
       ).collect();
 
-    let dataptr = unsafe { malloc(mapped.len() * mem::size_of::<KeyBackupElem>()) as *mut KeyBackupElem };
-    let slice = unsafe { std::slice::from_raw_parts_mut(dataptr, mapped.len()) };
-    slice.copy_from_slice(mapped.as_ref());
-    Self { ptr: dataptr, count: mapped.len() }
+    let len = mapped.len();
+    let mut slice = mapped.into_boxed_slice();
+    let out = slice.as_mut_ptr();
+    std::mem::forget(slice);
+    Self { ptr: out, count: len }
   }
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn keychain_manager_get_keys_data(
-  manager: &KeychainManagerPtr, encrypted: *const u8, encrypted_len: usize, password: PChar,
+  manager: &KeychainManagerPtr, encrypted: *const u8, encrypted_len: usize, password: CharPtr,
   data: &mut KeyBackupPtr, error: &mut ErrorPtr
 ) -> bool {
   let data_slice = std::slice::from_raw_parts(encrypted, encrypted_len);

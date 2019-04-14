@@ -1,8 +1,7 @@
 use keychain::{ Error as RError };
 use std::os::raw::c_char;
 use std::error::{ Error as IError };
-use libc::{ malloc, free, c_void };
-use std::ffi::CStr;
+use std::ffi::{ CStr, CString };
 
 pub trait Ptr<T: ?Sized> {
   unsafe fn as_ref(&self) -> &T;
@@ -32,18 +31,17 @@ pub enum ErrorType {
 #[repr(C)]
 pub struct ErrorPtr {
   error_type: ErrorType,
-  message: PChar
+  message: CharPtr
 }
 
 impl Ptr<str> for ErrorPtr {
   unsafe fn as_ref(&self) -> &str {
-    CStr::from_ptr(self.message).to_str().unwrap()
+    (&self.message as &Ptr<str>).as_ref()
   }
 
   unsafe fn free(&mut self) {
     if self.message.is_null() { return; }
-    free(self.message as *mut c_void);
-    self.message = std::ptr::null_mut();
+    self.message.free();
   }
 }
 
@@ -109,35 +107,24 @@ impl ArrayPtr<u8> for DataPtr {
 
   unsafe fn free(&mut self) {
     if self.ptr.is_null() { return; }
-    free(self.ptr as *mut c_void);
-    self.ptr = std::ptr::null_mut();
+    let _ = Vec::from_raw_parts(self.ptr as *mut u8, self.len, self.len);
+    self.ptr = std::ptr::null();
   }
 }
 
 impl From<&[u8]> for DataPtr {
   fn from(data: &[u8]) -> Self {
-    let dataptr = unsafe { malloc(data.len()) as *mut u8 };
-    let slice = unsafe { std::slice::from_raw_parts_mut(dataptr, data.len()) };
-    slice.copy_from_slice(data);
-    Self { ptr: dataptr, len: data.len() }
+    Vec::from(data).into()
   }
 }
 
 impl From<Vec<u8>> for DataPtr {
   fn from(data: Vec<u8>) -> Self {
-    let dataptr = unsafe { malloc(data.len()) as *mut u8 };
-    let slice = unsafe { std::slice::from_raw_parts_mut(dataptr, data.len()) };
-    slice.copy_from_slice(data.as_ref());
-    Self { ptr: dataptr, len: data.len() }
-  }
-}
-
-impl From<&Vec<u8>> for DataPtr {
-  fn from(data: &Vec<u8>) -> Self {
-    let dataptr = unsafe { malloc(data.len()) as *mut u8 };
-    let slice = unsafe { std::slice::from_raw_parts_mut(dataptr, data.len()) };
-    slice.copy_from_slice(data.as_ref());
-    Self { ptr: dataptr, len: data.len() }
+    let len = data.len();
+    let mut slice = data.into_boxed_slice();
+    let out = slice.as_mut_ptr();
+    std::mem::forget(slice);
+    Self { ptr: out, len: len }
   }
 }
 
@@ -146,26 +133,35 @@ pub unsafe extern "C" fn delete_data(data: &mut DataPtr) {
   data.free();
 }
 
-pub type PChar = *const c_char;
+pub type CharPtr = *const c_char;
+
+impl Ptr<str> for CharPtr {
+  unsafe fn as_ref(&self) -> &str {
+    CStr::from_ptr(*self).to_str().unwrap()
+  }
+
+  unsafe fn free(&mut self) {
+    let _ = CString::from_raw(*self as *mut c_char);
+    *self = std::ptr::null();
+  }
+}
+
+pub unsafe extern "C" fn delete_string(ptr: &mut CharPtr) {
+    ptr.free();
+}
 
 pub trait ToCString {
-  fn to_cstr(&self) -> PChar; 
+  fn to_cstr(&self) -> CharPtr; 
 }
 
 impl ToCString for &str {
-  fn to_cstr(&self) -> PChar {
-    let len = self.len() + 1;
-    let ptr = unsafe { malloc(len) as *mut u8 };
-    let ref mut slice = unsafe { std::slice::from_raw_parts_mut(ptr, len) };
-    slice.copy_from_slice(self.as_bytes());
-    slice[len-1] = b'\0';
-    ptr as PChar
+  fn to_cstr(&self) -> CharPtr {
+    CString::new(self.as_bytes()).unwrap().into_raw()
   } 
 }
 
 impl ToCString for String {
-  fn to_cstr(&self) -> PChar {
-    let slice: &str = self.as_ref();
-    slice.to_cstr()
+  fn to_cstr(&self) -> CharPtr {
+    CString::new(self.as_bytes()).unwrap().into_raw()
   } 
 }

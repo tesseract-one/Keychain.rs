@@ -1,6 +1,4 @@
 extern crate keychain;
-extern crate libc;
-
 extern crate num_traits;
 
 mod network;
@@ -13,6 +11,7 @@ pub use network::*;
 pub use manager::*;
 pub use keychain_::*;
 pub use key_path::*;
+pub use result::*;
 
 #[cfg(feature = "ethereum")]
 mod ethereum;

@@ -1,9 +1,8 @@
 use keychain::{ KeychainManager as RKeychainManager, Language as RLanguage };
 use keychain_::{ NewKeychainData, KeychainPtr };
-use std::mem;
 use std::ffi::{ c_void, CStr };
 use std::os::raw::c_char;
-use result::{ CResult, PChar, ToCString, DataPtr, ErrorPtr, Ptr };
+use result::{ CResult, CharPtr, ToCString, DataPtr, ErrorPtr, Ptr };
 use network::Network;
 use num_traits::FromPrimitive;
 
@@ -25,9 +24,7 @@ impl Ptr<RKeychainManager> for KeychainManagerPtr {
 
 impl KeychainManagerPtr {
   fn new(manager: RKeychainManager) -> Self {
-    let ptr = Box::into_raw(Box::new(manager));
-    mem::forget(ptr);
-    Self(ptr as *mut c_void)
+    Self(Box::into_raw(Box::new(manager)) as *mut c_void)
   }
 }
 
@@ -64,7 +61,7 @@ pub unsafe extern "C" fn keychain_manager_has_network(manager: &KeychainManagerP
 
 #[no_mangle]
 pub unsafe extern "C" fn keychain_manager_generate_mnemonic(
-  manager: &KeychainManagerPtr, lang: Language, mnemonic: &mut PChar, error: &mut ErrorPtr
+  manager: &KeychainManagerPtr, lang: Language, mnemonic: &mut CharPtr, error: &mut ErrorPtr
 ) -> bool {
   manager.as_ref().generate_mnemonic(lang.rust())
     .map(|mnemonic| mnemonic.to_cstr())
@@ -73,7 +70,7 @@ pub unsafe extern "C" fn keychain_manager_generate_mnemonic(
 
 #[no_mangle]
 pub unsafe extern "C" fn keychain_manager_keychain_from_seed(
-  manager: &KeychainManagerPtr, seed: *const u8, seed_len: usize, password: PChar,
+  manager: &KeychainManagerPtr, seed: *const u8, seed_len: usize, password: CharPtr,
   data: &mut NewKeychainData, error: &mut ErrorPtr
 ) -> bool {
   let seed_slice = std::slice::from_raw_parts(seed, seed_len);
@@ -86,7 +83,7 @@ pub unsafe extern "C" fn keychain_manager_keychain_from_seed(
 
 #[no_mangle]
 pub unsafe extern "C" fn keychain_manager_keychain_from_mnemonic(
-  manager: &KeychainManagerPtr, mnemonic: PChar, password: PChar, lang: Language,
+  manager: &KeychainManagerPtr, mnemonic: CharPtr, password: CharPtr, lang: Language,
   data: &mut NewKeychainData, error: &mut ErrorPtr
 ) -> bool {
   let mnemonic = CStr::from_ptr(mnemonic as *const c_char).to_str().unwrap();
@@ -99,7 +96,7 @@ pub unsafe extern "C" fn keychain_manager_keychain_from_mnemonic(
 
 #[no_mangle]
 pub unsafe extern "C" fn keychain_manager_keychain_from_data(
-  manager: &KeychainManagerPtr, data: *const u8, data_len: usize, password: PChar,
+  manager: &KeychainManagerPtr, data: *const u8, data_len: usize, password: CharPtr,
   keychain: &mut KeychainPtr, error: &mut ErrorPtr
 ) -> bool {
   let data_slice = std::slice::from_raw_parts(data, data_len);
@@ -112,7 +109,7 @@ pub unsafe extern "C" fn keychain_manager_keychain_from_data(
 
 #[no_mangle]
 pub unsafe extern "C" fn keychain_manager_change_password(
-  manager: &KeychainManagerPtr, data: *const u8, data_len: usize, old_password: PChar, new_password: PChar,
+  manager: &KeychainManagerPtr, data: *const u8, data_len: usize, old_password: CharPtr, new_password: CharPtr,
   response: &mut DataPtr, error: &mut ErrorPtr 
 ) -> bool {
   let data_slice = std::slice::from_raw_parts(data, data_len);

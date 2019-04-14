@@ -1,8 +1,5 @@
 use keychain::{ Network as RNetwork };
 use result::ArrayPtr;
-use libc::{ malloc, free };
-use std::ffi::c_void;
-use std::mem;
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -33,17 +30,18 @@ impl ArrayPtr<Network> for NetworksPtr {
 
   unsafe fn free(&mut self) {
     if self.ptr.is_null() { return; }
-    free(self.ptr as *mut c_void);
+    let _ = Vec::from_raw_parts(self.ptr as *mut Network, self.count, self.count);
     self.ptr = std::ptr::null();
   }
 }
 
 impl From<Vec<Network>> for NetworksPtr {
   fn from(data: Vec<Network>) -> Self {
-    let dataptr = unsafe { malloc(data.len() * mem::size_of::<Network>()) as *mut Network };
-    let slice = unsafe { std::slice::from_raw_parts_mut(dataptr, data.len()) };
-    slice.copy_from_slice(data.as_ref());
-    Self { ptr: dataptr, count: data.len() }
+    let len = data.len();
+    let mut slice = data.into_boxed_slice();
+    let out = slice.as_mut_ptr();
+    std::mem::forget(slice);
+    Self { ptr: out, count: len }
   }
 }
 

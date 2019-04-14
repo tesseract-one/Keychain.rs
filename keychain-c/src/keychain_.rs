@@ -1,7 +1,6 @@
 use keychain::{ Keychain as RKeychain };
 use network::{ Network, NetworksPtr };
 use key_path::KeyPath;
-use std::mem;
 use result::{ DataPtr, CResult, ErrorPtr, Ptr };
 use std::ffi::{ c_void };
 
@@ -23,9 +22,7 @@ impl Ptr<RKeychain> for KeychainPtr {
 
 impl KeychainPtr {
   pub fn new(keychain: RKeychain) -> Self {
-    let ptr = Box::into_raw(Box::new(keychain));
-    mem::forget(ptr);
-    Self(ptr as *mut c_void)
+    Self(Box::into_raw(Box::new(keychain)) as *mut c_void)
   }
 }
 
