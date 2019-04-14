@@ -1,5 +1,5 @@
 use keychain::{ KeyPath as IKeyPath, GenericKeyPath };
-use result::{ PChar, CResult, Error };
+use result::{ PChar, CResult, ErrorPtr };
 use std::os::raw::c_char;
 use std::ffi::CStr;
 
@@ -34,7 +34,7 @@ impl From<&IKeyPath> for KeyPath {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn keypath_from_string(string: PChar, key_path: &mut KeyPath, error: &mut Error) -> bool {
+pub unsafe extern "C" fn keypath_from_string(string: PChar, key_path: &mut KeyPath, error: &mut ErrorPtr) -> bool {
   let path = CStr::from_ptr(string as *const c_char).to_str().unwrap();
   GenericKeyPath::from(path)
     .map_err(|err| err.into())

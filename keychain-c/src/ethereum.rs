@@ -1,7 +1,7 @@
 use keychain::{ Network as RNetwork };
 use keychain::{ KeyPath as IKeyPath };
 use keychain::networks::ethereum::{ KeyPath as RKeyPath };
-use result::{ CResult, Error };
+use result::{ CResult, ErrorPtr };
 use network::Network;
 use key_path::KeyPath;
 
@@ -12,7 +12,7 @@ pub extern "C" fn NETWORK_ETHEREUM() -> Network { ETHEREUM }
 
 #[no_mangle]
 pub unsafe extern "C" fn keypath_ethereum_new(
-  account: u32, path: &mut KeyPath, error: &mut Error
+  account: u32, path: &mut KeyPath, error: &mut ErrorPtr
 ) -> bool {
   RKeyPath::new(account)
     .map_err(|err| err.into())
@@ -22,7 +22,7 @@ pub unsafe extern "C" fn keypath_ethereum_new(
 
 #[no_mangle]
 pub unsafe extern "C" fn keypath_ethereum_new_metamask(
-  account: u32, path: &mut KeyPath, error: &mut Error
+  account: u32, path: &mut KeyPath, error: &mut ErrorPtr
 ) -> bool {
   RKeyPath::new_metamask(account)
     .map_err(|err| err.into())

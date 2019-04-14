@@ -2,6 +2,17 @@ use keychain::{ Error as RError };
 use std::os::raw::c_char;
 use std::error::{ Error as IError };
 use libc::{ malloc, free, c_void };
+use std::ffi::CStr;
+
+pub trait Ptr<T: ?Sized> {
+  unsafe fn as_ref(&self) -> &T;
+  unsafe fn free(&mut self);
+}
+
+pub trait ArrayPtr<T> {
+  unsafe fn as_ref(&self) -> &[T];
+  unsafe fn free(&mut self);
+}
 
 #[repr(C)]
 #[derive(Copy, Clone, Eq, PartialEq)]
@@ -19,12 +30,24 @@ pub enum ErrorType {
 }
 
 #[repr(C)]
-pub struct Error {
+pub struct ErrorPtr {
   error_type: ErrorType,
   message: PChar
 }
 
-impl Error {
+impl Ptr<str> for ErrorPtr {
+  unsafe fn as_ref(&self) -> &str {
+    CStr::from_ptr(self.message).to_str().unwrap()
+  }
+
+  unsafe fn free(&mut self) {
+    if self.message.is_null() { return; }
+    free(self.message as *mut c_void);
+    self.message = std::ptr::null_mut();
+  }
+}
+
+impl ErrorPtr {
   fn error_type(err: &RError) -> ErrorType {
     match err {
       &RError::WrongPassword => ErrorType::WrongPassword,
@@ -46,29 +69,22 @@ impl Error {
       message: err.description().to_cstr()
     }
   }
-
-  pub fn free(&mut self) {
-    if !self.message.is_null() {
-      unsafe { free(self.message as *mut c_void); }
-    }
-    self.message = std::ptr::null_mut();
-  }
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn delete_error(error: &mut Error) {
+pub unsafe extern "C" fn delete_error(error: &mut ErrorPtr) {
   error.free();
 }
 
 pub trait CResult<T> {
-  fn response(&self, val: &mut T, error: &mut Error) -> bool;
+  fn response(&self, val: &mut T, error: &mut ErrorPtr) -> bool;
 }
 
 impl<T: Copy> CResult<T> for Result<T, RError> {
-  fn response(&self, val: &mut T, error: &mut Error) -> bool {
+  fn response(&self, val: &mut T, error: &mut ErrorPtr) -> bool {
     match self {
       Err(err) => {
-        *error = Error::new(err);
+        *error = ErrorPtr::new(err);
         false
       },
       Ok(value) => {
@@ -81,21 +97,24 @@ impl<T: Copy> CResult<T> for Result<T, RError> {
 
 #[repr(C)]
 #[derive(Copy, Clone)]
-pub struct Data {
+pub struct DataPtr {
   ptr: *const u8,
   len: usize 
 }
 
-impl Data {
-  pub fn free(&mut self) {
-    if !self.ptr.is_null() {
-      unsafe { free(self.ptr as *mut c_void); }
-    }
+impl ArrayPtr<u8> for DataPtr {
+  unsafe fn as_ref(&self) -> &[u8] {
+    std::slice::from_raw_parts(self.ptr, self.len)
+  }
+
+  unsafe fn free(&mut self) {
+    if self.ptr.is_null() { return; }
+    free(self.ptr as *mut c_void);
     self.ptr = std::ptr::null_mut();
   }
 }
 
-impl From<&[u8]> for Data {
+impl From<&[u8]> for DataPtr {
   fn from(data: &[u8]) -> Self {
     let dataptr = unsafe { malloc(data.len()) as *mut u8 };
     let slice = unsafe { std::slice::from_raw_parts_mut(dataptr, data.len()) };
@@ -104,7 +123,7 @@ impl From<&[u8]> for Data {
   }
 }
 
-impl From<Vec<u8>> for Data {
+impl From<Vec<u8>> for DataPtr {
   fn from(data: Vec<u8>) -> Self {
     let dataptr = unsafe { malloc(data.len()) as *mut u8 };
     let slice = unsafe { std::slice::from_raw_parts_mut(dataptr, data.len()) };
@@ -113,7 +132,7 @@ impl From<Vec<u8>> for Data {
   }
 }
 
-impl From<&Vec<u8>> for Data {
+impl From<&Vec<u8>> for DataPtr {
   fn from(data: &Vec<u8>) -> Self {
     let dataptr = unsafe { malloc(data.len()) as *mut u8 };
     let slice = unsafe { std::slice::from_raw_parts_mut(dataptr, data.len()) };
@@ -123,7 +142,7 @@ impl From<&Vec<u8>> for Data {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn delete_data(data: &mut Data) {
+pub unsafe extern "C" fn delete_data(data: &mut DataPtr) {
   data.free();
 }
 

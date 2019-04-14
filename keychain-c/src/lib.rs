@@ -9,7 +9,7 @@ mod result;
 mod keychain_;
 mod key_path;
 
-pub use network::{Network, Networks};
+pub use network::*;
 pub use manager::*;
 pub use keychain_::*;
 pub use key_path::*;

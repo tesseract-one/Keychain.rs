@@ -1,30 +1,33 @@
 use keychain::{ KeychainManager as RKeychainManager, Language as RLanguage };
-use keychain_::{ NewKeychainData, Keychain };
+use keychain_::{ NewKeychainData, KeychainPtr };
 use std::mem;
 use std::ffi::{ c_void, CStr };
 use std::os::raw::c_char;
-use result::{ CResult, PChar, ToCString, Data, Error };
+use result::{ CResult, PChar, ToCString, DataPtr, ErrorPtr, Ptr };
 use network::Network;
 use num_traits::FromPrimitive;
 
 #[repr(C)]
 #[derive(Copy, Clone)]
-pub struct KeychainManager(*mut c_void);
+pub struct KeychainManagerPtr(*mut c_void);
 
-impl KeychainManager {
+impl Ptr<RKeychainManager> for KeychainManagerPtr {
+  unsafe fn as_ref(&self) -> &RKeychainManager {
+    (self.0 as *mut RKeychainManager).as_ref().unwrap()
+  }
+
+  unsafe fn free(&mut self) {
+    if self.0.is_null() { return; }
+    let _: Box<RKeychainManager> = Box::from_raw(self.0 as *mut RKeychainManager);
+    self.0 = std::ptr::null_mut();
+  }
+}
+
+impl KeychainManagerPtr {
   fn new(manager: RKeychainManager) -> Self {
     let ptr = Box::into_raw(Box::new(manager));
     mem::forget(ptr);
     Self(ptr as *mut c_void)
-  }
-
-  pub unsafe fn rust(&self) -> &RKeychainManager {
-    (self.0 as *mut RKeychainManager).as_ref().unwrap()
-  }
-
-  unsafe fn drop(&mut self) {
-    let _: Box<RKeychainManager> = Box::from_raw(self.0 as *mut RKeychainManager);
-    self.0 = std::ptr::null_mut();
   }
 }
 
@@ -48,34 +51,34 @@ impl Language {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn keychain_manager_new(manager: &mut KeychainManager, error: &mut Error) -> bool {
+pub unsafe extern "C" fn keychain_manager_new(manager: &mut KeychainManagerPtr, error: &mut ErrorPtr) -> bool {
   RKeychainManager::new()
-    .map(|manager| KeychainManager::new(manager))
+    .map(|manager| KeychainManagerPtr::new(manager))
     .response(manager, error)
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn keychain_manager_has_network(manager: &KeychainManager, network: Network) -> bool {
-  manager.rust().has_network(&network.into())
+pub unsafe extern "C" fn keychain_manager_has_network(manager: &KeychainManagerPtr, network: Network) -> bool {
+  manager.as_ref().has_network(&network.into())
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn keychain_manager_generate_mnemonic(
-  manager: &KeychainManager, lang: Language, mnemonic: &mut PChar, error: &mut Error
+  manager: &KeychainManagerPtr, lang: Language, mnemonic: &mut PChar, error: &mut ErrorPtr
 ) -> bool {
-  manager.rust().generate_mnemonic(lang.rust())
+  manager.as_ref().generate_mnemonic(lang.rust())
     .map(|mnemonic| mnemonic.to_cstr())
     .response(mnemonic, error)
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn keychain_manager_keychain_from_seed(
-  manager: &KeychainManager, seed: *const u8, seed_len: usize, password: PChar,
-  data: &mut NewKeychainData, error: &mut Error
+  manager: &KeychainManagerPtr, seed: *const u8, seed_len: usize, password: PChar,
+  data: &mut NewKeychainData, error: &mut ErrorPtr
 ) -> bool {
   let seed_slice = std::slice::from_raw_parts(seed, seed_len);
   let pwd = CStr::from_ptr(password as *const c_char).to_str().unwrap();
-  manager.rust()
+  manager.as_ref()
     .keychain_from_seed(seed_slice, pwd)
     .map(|(keychain, data)| NewKeychainData::new(keychain, &data))
     .response(data, error)
@@ -83,12 +86,12 @@ pub unsafe extern "C" fn keychain_manager_keychain_from_seed(
 
 #[no_mangle]
 pub unsafe extern "C" fn keychain_manager_keychain_from_mnemonic(
-  manager: &KeychainManager, mnemonic: PChar, password: PChar, lang: Language,
-  data: &mut NewKeychainData, error: &mut Error
+  manager: &KeychainManagerPtr, mnemonic: PChar, password: PChar, lang: Language,
+  data: &mut NewKeychainData, error: &mut ErrorPtr
 ) -> bool {
   let mnemonic = CStr::from_ptr(mnemonic as *const c_char).to_str().unwrap();
   let pwd = CStr::from_ptr(password as *const c_char).to_str().unwrap();
-  manager.rust()
+  manager.as_ref()
     .keychain_from_mnemonic(mnemonic, pwd, lang.rust())
     .map(|(keychain, data)| NewKeychainData::new(keychain, &data))
     .response(data, error)
@@ -96,32 +99,32 @@ pub unsafe extern "C" fn keychain_manager_keychain_from_mnemonic(
 
 #[no_mangle]
 pub unsafe extern "C" fn keychain_manager_keychain_from_data(
-  manager: &KeychainManager, data: *const u8, data_len: usize, password: PChar,
-  keychain: &mut Keychain, error: &mut Error
+  manager: &KeychainManagerPtr, data: *const u8, data_len: usize, password: PChar,
+  keychain: &mut KeychainPtr, error: &mut ErrorPtr
 ) -> bool {
   let data_slice = std::slice::from_raw_parts(data, data_len);
   let pwd = CStr::from_ptr(password as *const c_char).to_str().unwrap();
-  manager.rust()
+  manager.as_ref()
     .keychain_from_data(data_slice, pwd)
-    .map(|keychain| Keychain::new(keychain))
+    .map(|keychain| KeychainPtr::new(keychain))
     .response(keychain, error)
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn keychain_manager_change_password(
-  manager: &KeychainManager, data: *const u8, data_len: usize, old_password: PChar, new_password: PChar,
-  response: &mut Data, error: &mut Error 
+  manager: &KeychainManagerPtr, data: *const u8, data_len: usize, old_password: PChar, new_password: PChar,
+  response: &mut DataPtr, error: &mut ErrorPtr 
 ) -> bool {
   let data_slice = std::slice::from_raw_parts(data, data_len);
   let old_pwd = CStr::from_ptr(old_password as *const c_char).to_str().unwrap();
   let new_pwd = CStr::from_ptr(new_password as *const c_char).to_str().unwrap();
-  manager.rust()
+  manager.as_ref()
     .change_password(data_slice, old_pwd, new_pwd)
-    .map(|data| Data::from(data))
+    .map(|data| DataPtr::from(data))
     .response(response, error)
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn delete_keychain_manager(manager: &mut KeychainManager) {
-  manager.drop();
+pub unsafe extern "C" fn delete_keychain_manager(manager: &mut KeychainManagerPtr) {
+  manager.free();
 }
