@@ -1,5 +1,6 @@
 use keychain::{ Network as RNetwork };
-use libc::malloc;
+use libc::{ malloc, free };
+ use std::ffi::c_void;
 use std::mem;
 
 #[repr(C)]
@@ -37,4 +38,12 @@ impl From<Vec<RNetwork>> for Networks {
   fn from(data: Vec<RNetwork>) -> Self {
     data.into_iter().map(|net| net.into()).collect::<Vec<Network>>().into()
   }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn delete_networks(networks: &mut Networks) {
+  if !networks.ptr.is_null() {
+    free(networks.ptr as *mut c_void);
+  }
+  networks.ptr = std::ptr::null();
 }
