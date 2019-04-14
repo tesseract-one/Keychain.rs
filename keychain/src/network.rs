@@ -14,6 +14,10 @@ impl Network {
     {
       types.push(Network::ETHEREUM);
     }
+    #[cfg(feature = "bitcoin")]
+    {
+      types.push(Network::BITCOIN);
+    }
     types
   }
 }
