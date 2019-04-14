@@ -27,7 +27,7 @@ mod data_layout {
     pub const FINGERPRINT_SIZE : usize = 4;
     pub const INDEX_SIZE   : usize = 4;
     pub const CHAIN_CODE_SIZE : usize = 32;
-    pub const KEY_SIZE : usize = 32;
+    pub const KEY_SIZE : usize = super::util::SECRET_KEY_SIZE;
     pub const CHECKSUM_SIZE : usize = 4;
 
     pub const KEY_DATA_SIZE : usize = (
