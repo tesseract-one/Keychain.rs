@@ -21,7 +21,7 @@ impl KeyPath {
     if account >= BIP44_SOFT_UPPER_BOUND {
       return Err(Error::InvalidAccount(account));
     }
-    Ok(KeyPath { account: 0, address: account })
+    Ok(KeyPath { account: BIP44_SOFT_UPPER_BOUND, address: account })
   }
 }
 
