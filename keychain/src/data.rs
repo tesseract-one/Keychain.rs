@@ -5,19 +5,22 @@ use network::Network;
 
 pub type Error = serde_json::error::Error;
 
-#[derive(Debug, Copy, Clone, Hash, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, Hash, Eq, PartialEq, Serialize_repr, Deserialize_repr)]
+#[repr(u16)]
 enum Version {
   V1 = 1
 }
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct WalletDataV1 {
+  #[serde(serialize_with = "serialize::se_key_map", deserialize_with = "serialize::de_key_map")]
   pub keys: HashMap<Network, Vec<u8>>
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VersionedData {
   version: Version,
+  #[serde(with = "serialize::Base64")]
   data: Vec<u8>
 }
 
@@ -41,3 +44,30 @@ impl VersionedData {
   }
 }
 
+// Custom data serializaion/deserialization methods
+mod serialize {
+  use serde::{ Serializer, Deserialize, Deserializer };
+  use std::collections::HashMap;
+  use network::Network;
+
+  base64_serde_type!(pub Base64, base64::STANDARD);
+  
+  pub fn se_key_map<S: Serializer>(keys: &HashMap<Network, Vec<u8>>, serializer: S) -> Result<S::Ok, S::Error> {
+    #[derive(Serialize)]
+    struct Wrapper<'a>(#[serde(with = "Base64")] &'a Vec<u8>);
+
+    let map = keys.iter().map(|(k, v)| (k, Wrapper(v)));
+    serializer.collect_seq(map)
+  }
+  
+  pub fn de_key_map<'de, D: Deserializer<'de>>(deserializer: D) -> Result<HashMap<Network, Vec<u8>>, D::Error> {
+    #[derive(Deserialize)]
+    struct Wrapper(#[serde(with = "Base64")] Vec<u8>);
+
+    let mut map: HashMap<Network, Vec<u8>> = HashMap::new();
+    for (net, Wrapper(key)) in Vec::<(Network, Wrapper)>::deserialize(deserializer)? {
+      map.insert(net, key);
+    }
+    Ok(map)
+  }
+}

@@ -1,15 +1,26 @@
 
 // External crates
+// data serialization / deserialization
 extern crate serde;
+extern crate serde_json;
 #[macro_use]
 extern crate serde_derive;
-extern crate serde_json;
+#[macro_use]
+extern crate serde_repr;
+#[macro_use]
+extern crate base64_serde;
+extern crate base64;
+
+// Crypt
 extern crate cryptoxide;
 extern crate rand;
+
+// Enum conversion to and from number
 #[macro_use]
 extern crate enum_primitive_derive;
 extern crate num_traits;
 
+// our bip39 lib
 pub extern crate bip39;
 
 #[cfg(feature = "cardano")]
