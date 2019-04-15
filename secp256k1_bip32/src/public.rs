@@ -12,8 +12,11 @@ impl XPub {
   }
 
   pub fn serialize(&self) -> Vec<u8> {
-    let bytes: &[u8] = &self.0.serialize();
-    Vec::from(bytes)
+    Vec::from(self.0.serialize().as_ref())
+  }
+
+  pub fn serialize_compressed(&self) -> Vec<u8> {
+    Vec::from(self.0.serialize_compressed().as_ref())
   }
 
   pub fn verify(&self, data: &[u8], signature: &[u8]) -> Result<bool, KeyError> {
@@ -32,10 +35,18 @@ impl XPub {
       .map_err(|err| err.into() )
   }
 
-  pub fn sha256(&self) -> [u8; 32] {
+  pub fn sha256(&self) -> [u8; util::MESSAGE_SIZE] {
+    Self::_sha256(&self.0.serialize())
+  }
+
+  pub fn compressed_sha256(&self) -> [u8; util::MESSAGE_SIZE] {
+    Self::_sha256(&self.0.serialize_compressed())
+  }
+
+  fn _sha256(data: &[u8]) -> [u8; util::MESSAGE_SIZE] {
     let mut hasher = Sha256::new();
-    let mut out = [0u8; 32];
-    hasher.input(&self.0.serialize());
+    let mut out = [0u8; util::MESSAGE_SIZE];
+    hasher.input(data);
     hasher.result(&mut out);
     out
   }

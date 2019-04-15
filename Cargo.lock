@@ -250,11 +250,6 @@ version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
-name = "lazy_static"
-version = "1.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-
-[[package]]
 name = "libc"
 version = "0.2.51"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -284,23 +279,6 @@ dependencies = [
 name = "nodrop"
 version = "0.1.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-
-[[package]]
-name = "num-bigint"
-version = "0.2.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-dependencies = [
- "num-integer 0.1.39 (registry+https://github.com/rust-lang/crates.io-index)",
- "num-traits 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "num-integer"
-version = "0.1.39"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-dependencies = [
- "num-traits 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
-]
 
 [[package]]
 name = "num-traits"
@@ -499,10 +477,7 @@ dependencies = [
  "bip39 0.0.1",
  "byteorder 1.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "cryptoxide 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "lazy_static 1.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "libsecp256k1 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "num-bigint 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "num-traits 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "ripemd160 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -745,13 +720,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum hmac 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)" = "7a13f4163aa0c5ca1be584aace0e2212b2e41be5478218d4f657f5f778b2ae2a"
 "checksum hmac-drbg 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)" = "4fe727d41d2eec0a6574d887914347e5ff96a3b87177817e2a9820c5c87fecc2"
 "checksum itoa 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)" = "1306f3464951f30e30d12373d31c79fbd52d236e5e896fd92f96ec7babbbe60b"
-"checksum lazy_static 1.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "bc5729f27f159ddd61f4df6228e827e86643d4d3e7c32183cb30a1c08f604a14"
 "checksum libc 0.2.51 (registry+https://github.com/rust-lang/crates.io-index)" = "bedcc7a809076656486ffe045abeeac163da1b558e963a31e29fbfbeba916917"
 "checksum libsecp256k1 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "688e8d65e495567c2c35ea0001b26b9debf0b4ea11f8cccc954233b75fc3428a"
 "checksum log 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)" = "c84ec4b527950aa83a329754b01dbe3f58361d1c5efacd1f6d68c494d08a17c6"
 "checksum nodrop 0.1.13 (registry+https://github.com/rust-lang/crates.io-index)" = "2f9667ddcc6cc8a43afc9b7917599d7216aa09c463919ea32c59ed6cac8bc945"
-"checksum num-bigint 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "57450397855d951f1a41305e54851b1a7b8f5d2e349543a02a2effe25459f718"
-"checksum num-integer 0.1.39 (registry+https://github.com/rust-lang/crates.io-index)" = "e83d528d2677f0518c570baf2b7abdcf0cd2d248860b68507bdcb3e91d4c0cea"
 "checksum num-traits 0.1.43 (registry+https://github.com/rust-lang/crates.io-index)" = "92e5113e9fd4cc14ded8e499429f396a20f98c772a47cc8622a736e1ec843c31"
 "checksum num-traits 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)" = "0b3a5d7cc97d6d30d8b9bc8fa19bf45349ffe46241e8816f50f62f6d6aaabee1"
 "checksum opaque-debug 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "93f5bb2e8e8dec81642920ccff6b61f1eb94fa3020c5a325c9851ff604152409"

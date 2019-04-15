@@ -11,10 +11,7 @@ bip39 = { path = "../bip39" }
 cryptoxide = "0.1"
 libsecp256k1 = "0.2"
 byteorder = "1"
-num-bigint = "0.2"
-num-traits = "0.2"
 ripemd160 = "0.8"
-lazy_static = "1.3"
 
 [lib]
 name = "secp256k1_bip32"
