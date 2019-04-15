@@ -80,21 +80,21 @@ impl Key {
       .map(|xprv| Vec::from(xprv.as_ref()))
   }
 
-  fn derive_private(&self, path: &KeyPath) -> Result<XPrv, KPError> {
+  fn derive_private(&self, path: &KeyPath) -> Result<XPrv, Error> {
     if path.purpose() != BIP44_PURPOSE {
-      return Err(KPError::InvalidPurpose(path.purpose(), BIP44_PURPOSE));
+      return Err(KPError::InvalidPurpose(path.purpose(), BIP44_PURPOSE).into());
     }
     if path.coin() != BIP44_COIN_TYPE {
-      return Err(KPError::InvalidCoin(path.coin(), BIP44_COIN_TYPE));
+      return Err(KPError::InvalidCoin(path.coin(), BIP44_COIN_TYPE).into());
     }
     if path.account() < BIP44_SOFT_UPPER_BOUND {
-      return Err(KPError::InvalidAccount(path.account()));
+      return Err(KPError::InvalidAccount(path.account()).into());
     }
     if path.change() != 0 && path.change() != 1 {
-      return Err(KPError::InvalidChange(path.change()));
+      return Err(KPError::InvalidChange(path.change()).into());
     }
     if path.address() >= BIP44_SOFT_UPPER_BOUND {
-      return Err(KPError::InvalidAddress(path.address()));
+      return Err(KPError::InvalidAddress(path.address()).into());
     }
     Ok(
       self.xprv
@@ -112,7 +112,6 @@ impl IKey for Key {
 
   fn pub_key(&self, path: &KeyPath) -> Result<Vec<u8>, Error> {
     self.derive_private(path)
-      .map_err(|err| err.into())
       .map(|pk| Vec::from(pk.public().as_ref()))
   }
 
@@ -122,7 +121,6 @@ impl IKey for Key {
         let signature: Signature<Vec<u8>> = pk.sign(data);
         Vec::from(signature.as_ref())
       })
-      .map_err(|err| err.into())
   }
 
   fn verify(&self, data: &[u8], signature: &[u8], path: &KeyPath) -> Result<bool, Error> {
@@ -137,6 +135,5 @@ impl IKey for Key {
         let native_signature: Signature<Vec<u8>> = Signature::from_bytes(sign);
         pk.verify(data, &native_signature)
       })
-      .map_err(|err| err.into())
   }
 }

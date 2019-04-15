@@ -20,7 +20,8 @@ impl Key {
   }
 
   pub fn data_from_seed(seed: &bip39::Seed) -> Result<Vec<u8>, Error> {
-    XPrv::from_seed(seed).map(|pk| pk.serialize() ).map_err(|err| err.into())
+    let xprv = XPrv::from_seed(seed).map_err(|err| Error::from(err))?;
+    Ok(xprv.serialize())
   }
 
   fn derive_private(&self, path: &KeyPath) -> Result<XPrv, Error> {
@@ -53,18 +54,19 @@ impl IKey for Key {
   }
 
   fn pub_key(&self, path: &KeyPath) -> Result<Vec<u8>, Error> {
-    self.derive_private(path)
-      .map_err(|err| err.into())
-      .map(|pk| pk.public().serialize())
+    self.derive_private(path).map(|pk| pk.public().serialize())
   }
 
   fn sign(&self, data: &[u8], path: &KeyPath) -> Result<Vec<u8>, Error> {
-    self.derive_private(path)
-      .and_then(|pk| pk.sign(data).map_err(|err| Error::from_secp_sign_error(err)))
+    self.derive_private(path)?
+      .sign(data)
+      .map_err(|err| Error::from_secp_sign_error(err))
   }
 
   fn verify(&self, data: &[u8], signature: &[u8], path: &KeyPath) -> Result<bool, Error> {
-    self.derive_private(path)
-      .and_then(|pk| pk.public().verify(data, signature).map_err(|err| err.into()))
+    self.derive_private(path)?
+      .public()
+      .verify(data, signature)
+      .map_err(|err| err.into())
   }
 }

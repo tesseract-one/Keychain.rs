@@ -22,27 +22,21 @@ impl Keychain {
   }
 
   pub fn pub_key(&self, network: &Network, path: &KeyPath) -> Result<Vec<u8>, Error> {
-    self._pk(network).and_then(|key| {
-      key
-        .pub_key(path)
-        .map_err(|err| { Error::from_key_error(network, err) })
-    })
+    self._pk(network)?
+      .pub_key(path)
+      .map_err(|err| Error::from_key_error(network, err))
   }
 
   pub fn sign(&self, network: &Network, data: &[u8], path: &KeyPath) -> Result<Vec<u8>, Error> {
-    self._pk(network).and_then(|key| {
-      key
-        .sign(data, path)
-        .map_err(|err| { Error::from_key_error(network, err) })
-    })
+    self._pk(network)?
+      .sign(data, path)
+      .map_err(|err| Error::from_key_error(network, err))
   }
 
   pub fn verify(&self, network: &Network, data: &[u8], signature: &[u8], path: &KeyPath) -> Result<bool, Error> {
-    self._pk(network).and_then(|key| {
-      key
-        .verify(data, signature, path)
-        .map_err(|err| { Error::from_key_error(network, err) })
-    })
+    self._pk(network)?
+      .verify(data, signature, path)
+      .map_err(|err| Error::from_key_error(network, err))
   }
 }
 

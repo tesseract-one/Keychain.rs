@@ -77,16 +77,13 @@ impl From<bip39::Error> for Error {
 pub const SEED_SIZE: usize = bip39::SEED_SIZE;
 
 pub fn generate(size: usize, language: Language, entropy: &Entropy) -> Result<String, Error> {
-  bip39::Type::from_entropy_size(size).map(|etype| {
-    (*bip39::Entropy::generate(etype, || {
-        let mut buf = [0u8];
-        entropy.fill_bytes(&mut buf);
-        buf[0]
-      })
-      .to_mnemonics()
-      .to_string(language.to_dict())
-    ).to_owned()
-  }).map_err(|err| err.into())
+  let bip_type = bip39::Type::from_entropy_size(size).map_err(|e| Error::from(e))?;
+  let mnemonics = bip39::Entropy::generate(bip_type, || {
+    let mut buf = [0u8];
+    entropy.fill_bytes(&mut buf);
+    buf[0]
+  }).to_mnemonics().to_string(language.to_dict());
+  Ok((*mnemonics).to_owned())
 }
 
 pub fn seed_from_mnemonic(mnemonic: &str, unique: &str, size: usize, language: Language) -> Result<Vec<u8>, Error> {
@@ -101,9 +98,7 @@ pub fn seed_from_mnemonic(mnemonic: &str, unique: &str, size: usize, language: L
   if words.len() % 3 != 0 {
     return Err(Error::WrongNumberOfWords(words.len()));
   }
-  bip39::MnemonicString::new(language.to_dict(), mnemonic.to_owned())
-    .map_err(|err| err.into())
-    .map(|mstring| {
-      Vec::from(bip39::Seed::from_mnemonic_string(&mstring, unique.as_bytes()).as_ref())
-    })
+  let mnemonic_string = bip39::MnemonicString::new(language.to_dict(), mnemonic.to_owned())
+    .map_err(|err| Error::from(err))?;
+  Ok(Vec::from(bip39::Seed::from_mnemonic_string(&mnemonic_string, unique.as_bytes()).as_ref()))
 }

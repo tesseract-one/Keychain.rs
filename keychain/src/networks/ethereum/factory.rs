@@ -24,8 +24,8 @@ impl IKeyFactory for KeyFactory {
   }
 
   fn key_data_from_seed(&self, seed: &[u8]) -> Result<Vec<u8>, KeyError> {
-    Seed::from_slice(seed)
-      .map_err(|err| KeyError::InvalidMnemonic(err.into()) )
-      .and_then(|seed| Key::data_from_seed(&seed))
+    let seed = Seed::from_slice(seed)
+      .map_err(|err| KeyError::InvalidMnemonic(err.into()))?;
+    Key::data_from_seed(&seed)
   }
 }

@@ -42,39 +42,39 @@ impl KeyPath {
   }
 
   pub fn bip44(testnet: bool, account: u32, change: u32, address: u32) -> Result<Self, Error> {
-    Self::is_valid(account, change, address)
-      .map(|_| 
-        KeyPath {
-          purpose: BIP44_PURPOSE,
-          coin: Self::coin(testnet),
-          account: account + BIP44_SOFT_UPPER_BOUND,
-          change, address
-        }
-      )
+    Self::is_valid(account, change, address)?;
+    Ok(
+      KeyPath {
+        purpose: BIP44_PURPOSE,
+        coin: Self::coin(testnet),
+        account: account + BIP44_SOFT_UPPER_BOUND,
+        change, address
+      }
+    )
   }
 
   pub fn bip49(testnet: bool, account: u32, change: u32, address: u32) -> Result<Self, Error> {
-    Self::is_valid(account, change, address)
-      .map(|_| 
-        KeyPath {
-          purpose: BIP49_PURPOSE,
-          coin: Self::coin(testnet),
-          account: account + BIP44_SOFT_UPPER_BOUND,
-          change, address
-        }
-      )
+    Self::is_valid(account, change, address)?;
+    Ok(
+      KeyPath {
+        purpose: BIP49_PURPOSE,
+        coin: Self::coin(testnet),
+        account: account + BIP44_SOFT_UPPER_BOUND,
+        change, address
+      }
+    )
   }
 
   pub fn bip84(testnet: bool, account: u32, change: u32, address: u32) -> Result<Self, Error> {
-    Self::is_valid(account, change, address)
-      .map(|_| 
-        KeyPath {
-          purpose: BIP84_PURPOSE,
-          coin: Self::coin(testnet),
-          account: account + BIP44_SOFT_UPPER_BOUND,
-          change, address
-        }
-      )
+    Self::is_valid(account, change, address)?;
+    Ok(
+      KeyPath {
+        purpose: BIP84_PURPOSE,
+        coin: Self::coin(testnet),
+        account: account + BIP44_SOFT_UPPER_BOUND,
+        change, address
+      }
+    )
   }
 }
 

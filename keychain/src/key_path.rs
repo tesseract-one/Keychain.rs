@@ -61,7 +61,7 @@ impl GenericKeyPath {
     if s.len() == 0 {
       return Err(Error::EmptyValueAtIndex(index))
     }
-    Self::soft_int(index, &s[..s.len() - 1]).map(|val| { val + BIP44_SOFT_UPPER_BOUND })
+    Self::soft_int(index, &s[..s.len() - 1]).map(|val| val + BIP44_SOFT_UPPER_BOUND)
   }
 
   fn soft_int(index: usize, s: &str) -> Result<u32, Error> {
@@ -69,7 +69,7 @@ impl GenericKeyPath {
       return Err(Error::EmptyValueAtIndex(index));
     }
     str::parse::<u32>(s)
-      .map_err(|err| { Error::ParseErrorAtIndex(index, err) })
+      .map_err(|err| Error::ParseErrorAtIndex(index, err))
   }
 
   fn parse_int(index: usize, s: &str) -> Result<u32, Error> {
@@ -100,16 +100,13 @@ impl GenericKeyPath {
       return Err(Error::InvalidPathMarker(parts[0].to_owned()));
     }
 
-    Self::parse_int(1, parts[1])
-      .and_then(|purpose| Self::parse_int(2, parts[2]).map(|coin| (purpose, coin)))
-      .and_then(|(purpose, coin)| Self::parse_int(3, parts[3]).map(|account| (purpose, coin, account)))
-      .and_then(|(purpose, coin, account)| {
-        Self::parse_int(4, parts[4]).map(|change| (purpose, coin, account, change)) 
-      })
-      .and_then(|(purpose, coin, account, change)| {
-        Self::parse_int(5, parts[5]).map(|address| (purpose, coin, account, change, address))
-      })
-      .map(|(purpose, coin, account, change, address)| GenericKeyPath { purpose, coin, account, change, address })
+    let purpose = Self::parse_int(1, parts[1])?;
+    let coin = Self::parse_int(2, parts[2])?;
+    let account = Self::parse_int(3, parts[3])?;
+    let change = Self::parse_int(4, parts[4])?;
+    let address = Self::parse_int(5, parts[5])?;
+
+    Ok(Self { purpose, coin, account, change, address })
   }
 
   pub fn to_string(&self) -> String {
