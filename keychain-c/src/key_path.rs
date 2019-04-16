@@ -2,6 +2,7 @@ use keychain::{ KeyPath as IKeyPath, GenericKeyPath };
 use result::{ CharPtr, CResult, ErrorPtr };
 use std::os::raw::c_char;
 use std::ffi::CStr;
+use panic::handle_exception_result;
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -35,9 +36,10 @@ impl From<&IKeyPath> for KeyPath {
 
 #[no_mangle]
 pub unsafe extern "C" fn keypath_from_string(string: CharPtr, key_path: &mut KeyPath, error: &mut ErrorPtr) -> bool {
-  let path = CStr::from_ptr(string as *const c_char).to_str().unwrap();
-  GenericKeyPath::from(path)
-    .map_err(|err| err.into())
-    .map(|path| (&path as &IKeyPath).into())
-    .response(key_path, error)
+  handle_exception_result(|| {
+    let path = CStr::from_ptr(string as *const c_char).to_str().unwrap();
+    GenericKeyPath::from(path)
+      .map_err(|err| err.into())
+      .map(|path| (&path as &IKeyPath).into())
+  }).response(key_path, error)
 }

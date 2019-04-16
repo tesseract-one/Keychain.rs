@@ -4,6 +4,7 @@ use result::{ DataPtr, CResult, CharPtr, ErrorPtr, ArrayPtr, Ptr };
 use keychain::{ Network as RNetwork };
 use std::os::raw::c_char;
 use std::ffi::CStr;
+use panic::handle_exception_result;
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -54,12 +55,13 @@ pub unsafe extern "C" fn keychain_manager_get_keys_data(
   manager: &KeychainManagerPtr, encrypted: *const u8, encrypted_len: usize, password: CharPtr,
   data: &mut KeyBackupPtr, error: &mut ErrorPtr
 ) -> bool {
-  let data_slice = std::slice::from_raw_parts(encrypted, encrypted_len);
-  let pwd = CStr::from_ptr(password as *const c_char).to_str().unwrap();
-  manager.as_ref()
-    .get_keys_data(data_slice, pwd)
-    .map(|backup| KeyBackupPtr::from(backup))
-    .response(data, error)
+  handle_exception_result(|| {
+    let data_slice = std::slice::from_raw_parts(encrypted, encrypted_len);
+    let pwd = CStr::from_ptr(password as *const c_char).to_str().unwrap();
+    manager.as_ref()
+      .get_keys_data(data_slice, pwd)
+      .map(|backup| KeyBackupPtr::from(backup))
+  }).response(data, error)
 }
 
 #[no_mangle]

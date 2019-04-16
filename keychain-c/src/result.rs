@@ -15,6 +15,7 @@ pub trait ArrayPtr<T> {
 #[repr(C)]
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub enum ErrorType {
+  Panic = -1,
   WrongPassword = 0,
   NotEnoughData = 1,
   CantCalculateSeedSize = 2,
@@ -28,6 +29,7 @@ pub enum ErrorType {
 }
 
 #[repr(C)]
+#[derive(Copy, Clone, Eq, PartialEq)]
 pub struct ErrorPtr {
   error_type: ErrorType,
   message: CharPtr
@@ -66,6 +68,13 @@ impl ErrorPtr {
       message: format!("{}", err).to_cstr()
     }
   }
+
+  pub fn panic(msg: &str) -> Self {
+    Self {
+      error_type: ErrorType::Panic,
+      message: msg.to_cstr()
+    }
+  }
 }
 
 #[no_mangle]
@@ -77,11 +86,11 @@ pub trait CResult<T> {
   fn response(&self, val: &mut T, error: &mut ErrorPtr) -> bool;
 }
 
-impl<T: Copy> CResult<T> for Result<T, RError> {
+impl<T: Copy> CResult<T> for Result<T, ErrorPtr> {
   fn response(&self, val: &mut T, error: &mut ErrorPtr) -> bool {
     match self {
       Err(err) => {
-        *error = ErrorPtr::new(err);
+        *error = *err;
         false
       },
       Ok(value) => {

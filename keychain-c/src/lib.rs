@@ -6,6 +6,7 @@ mod manager;
 mod result;
 mod keychain_;
 mod key_path;
+mod panic;
 
 pub use network::*;
 pub use manager::*;
@@ -32,3 +33,8 @@ pub use bitcoin::*;
 mod backup;
 #[cfg(feature = "backup")]
 pub use backup::*;
+
+#[no_mangle]
+pub unsafe extern "C" fn keychain_init_library() {
+  panic::hide_exceptions();
+}

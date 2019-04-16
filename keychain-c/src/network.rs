@@ -18,6 +18,7 @@ impl From<RNetwork> for Network {
 }
 
 #[repr(C)]
+#[derive(Copy, Clone)]
 pub struct NetworksPtr {
   ptr: *const Network,
   count: usize  
