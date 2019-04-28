@@ -20,9 +20,9 @@ matrix:
     - rust: nightly
 
 before_script:
-  - rustup component add rustfmt
+  - rustup component add rustfmt || travis_terminate 1
 
 script:
-    - cargo fmt --all -- --check
-    - cargo build --verbose --all
-    - cargo test --verbose --all
+    - cargo fmt --all -- --check || travis_terminate 1
+    - cargo build --verbose --all || travis_terminate 1
+    - cargo test --verbose --all || travis_terminate 1
