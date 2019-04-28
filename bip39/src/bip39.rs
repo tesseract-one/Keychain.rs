@@ -12,10 +12,10 @@
 //! ## To create a new HDWallet
 //!
 //! ```
-//! extern crate cardano;
+//! extern crate bip39;
 //! extern crate rand;
 //!
-//! use cardano::bip::bip39::*;
+//! use bip39::*;
 //!
 //! // first, you need to generate the original entropy
 //! let entropy = Entropy::generate(Type::Type18Words, rand::random);
@@ -32,7 +32,7 @@
 //! ## To recover a HDWallet
 //!
 //! ```
-//! use cardano::bip::bip39::*;
+//! use bip39::*;
 //!
 //! let mnemonics = "mimic left ask vacant toast follow bitter join diamond gate attend obey";
 //!
@@ -160,8 +160,8 @@ impl Entropy {
     ///
     /// ```
     /// extern crate rand;
-    /// # extern crate cardano;
-    /// # use cardano::bip::bip39::*;
+    /// # extern crate bip39;
+    /// # use bip39::*;
     ///
     /// let entropy = Entropy::generate(Type::Type15Words, rand::random);
     /// ```
@@ -245,8 +245,8 @@ impl Entropy {
     ///
     /// ```
     /// # extern crate rand;
-    /// # extern crate cardano;
-    /// # use cardano::bip::bip39::*;
+    /// # extern crate bip39;
+    /// # use bip39::*;
     ///
     /// let entropy = Entropy::generate(Type::Type15Words, rand::random);
     ///
@@ -270,7 +270,7 @@ impl Entropy {
     /// # Example
     ///
     /// ```
-    /// # use cardano::bip::bip39::*;
+    /// # use bip39::*;
     ///
     /// const MNEMONICS : &'static str = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
     /// let mnemonics = Mnemonics::from_string(&dictionary::ENGLISH, MNEMONICS)
@@ -315,7 +315,7 @@ impl Entropy {
     /// # Example
     ///
     /// ```
-    /// # use cardano::bip::bip39::*;
+    /// # use bip39::*;
     ///
     /// let entropy = Entropy::Entropy12([0;16]);
     ///
@@ -400,7 +400,7 @@ pub const SEED_SIZE: usize = 64;
 /// root key.
 ///
 /// See the module documentation for more details about how to use it
-/// within the `cardano` library.
+/// within the `keychain` library.
 pub struct Seed([u8; SEED_SIZE]);
 impl Seed {
     /// create a Seed by taking ownership of the given array
@@ -408,7 +408,7 @@ impl Seed {
     /// # Example
     ///
     /// ```
-    /// use cardano::bip::bip39::{Seed, SEED_SIZE};
+    /// use bip39::{Seed, SEED_SIZE};
     ///
     /// let bytes = [0u8;SEED_SIZE];
     /// let seed  = Seed::from_bytes(bytes);
@@ -424,7 +424,7 @@ impl Seed {
     /// # Example
     ///
     /// ```
-    /// use cardano::bip::bip39::{Seed, SEED_SIZE};
+    /// use bip39::{Seed, SEED_SIZE};
     ///
     /// let bytes = [0u8;SEED_SIZE];
     /// let wrong = [0u8;31];
@@ -462,7 +462,7 @@ impl Seed {
     /// # Example
     ///
     /// ```
-    /// # use cardano::bip::bip39::*;
+    /// # use bip39::*;
     ///
     /// const MNEMONICS : &'static str = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
     /// let mnemonics = MnemonicString::new(&dictionary::ENGLISH, MNEMONICS.to_owned())
@@ -516,7 +516,7 @@ impl Drop for Seed {
 /// has been safely validated against a dictionary.
 ///
 /// See the module documentation for more details about how to use it
-/// within the `cardano` library.
+/// within the `keychain` library.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone)]
 #[cfg_attr(feature = "generic-serialization", derive(Serialize, Deserialize))]
 pub struct MnemonicString(String);
@@ -529,7 +529,7 @@ impl MnemonicString {
     /// # Example
     ///
     /// ```
-    /// # use cardano::bip::bip39::*;
+    /// # use bip39::*;
     ///
     /// const MNEMONICS : &'static str = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
     /// let mnemonics = MnemonicString::new(&dictionary::ENGLISH, MNEMONICS.to_owned())
@@ -695,7 +695,7 @@ impl MnemonicIndex {
     /// # Example
     ///
     /// ```
-    /// # use cardano::bip::bip39::*;
+    /// # use bip39::*;
     /// #
     /// let index = MnemonicIndex::new(1029);
     /// assert!(index.is_ok());
@@ -843,7 +843,7 @@ pub mod dictionary {
     //! This interface is exposed to allow users to implement custom
     //! dictionaries.
     //!
-    //! Because this module is part of the `cardano` crate and that we
+    //! Because this module is part of the `keychain` crate and that we
     //! need to keep the dependencies as small as possible we do not support
     //! UTF8 NFKD by default. Users must be sure to compose (or decompose)
     //! our output (or input) UTF8 strings.
