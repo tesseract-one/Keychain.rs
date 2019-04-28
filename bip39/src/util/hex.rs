@@ -3,7 +3,7 @@
 //! # Example
 //!
 //! ```
-//! use cardano::util::hex::{Error, encode, decode};
+//! use bip39::util::hex::{Error, encode, decode};
 //!
 //! let example = b"some bytes";
 //!
@@ -38,7 +38,7 @@ pub type Result<T> = result::Result<T, Error>;
 ///  # Example
 ///
 /// ```
-/// use cardano::util::hex::{Error, encode};
+/// use bip39::util::hex::{Error, encode};
 ///
 /// let example = b"some bytes";
 ///
@@ -59,7 +59,7 @@ pub fn encode(input: &[u8]) -> String {
 ///  # Example
 ///
 /// ```
-/// use cardano::util::hex::{Error, decode};
+/// use bip39::util::hex::{Error, decode};
 ///
 /// let example = r"736f6d65206279746573";
 ///
