@@ -1,11 +1,13 @@
-use key::{ Key as IKey, Error };
-use key_path::{ Error as KPError, KeyPath, BIP44_PURPOSE, BIP44_SOFT_UPPER_BOUND };
 use super::key_path::BIP44_COIN_TYPE;
-use ed25519_bip32::{ XPrv, DerivationScheme, Signature, SIGNATURE_SIZE, XPRV_SIZE, PrivateKeyError };
-use cryptoxide::sha2::Sha512;
-use cryptoxide::digest::Digest;
-use network::Network;
 use bip39;
+use cryptoxide::digest::Digest;
+use cryptoxide::sha2::Sha512;
+use ed25519_bip32::{
+  DerivationScheme, PrivateKeyError, Signature, XPrv, SIGNATURE_SIZE, XPRV_SIZE
+};
+use key::{Error, Key as IKey};
+use key_path::{Error as KPError, KeyPath, BIP44_PURPOSE, BIP44_SOFT_UPPER_BOUND};
+use network::Network;
 use std::fmt;
 
 const D_SCHEME: DerivationScheme = DerivationScheme::V2;
@@ -14,7 +16,7 @@ const D_SCHEME: DerivationScheme = DerivationScheme::V2;
 pub enum KeyError {
   LengthInvalid(usize),
   HighestBitsInvalid,
-  LowestBitsInvalid,
+  LowestBitsInvalid
 }
 
 impl fmt::Display for KeyError {
@@ -22,7 +24,7 @@ impl fmt::Display for KeyError {
     match self {
       &KeyError::LengthInvalid(len) => write!(f, "Invalid data length {}", len),
       &KeyError::HighestBitsInvalid => write!(f, "Highest bits is invalid"),
-      &KeyError::LowestBitsInvalid => write!(f, "Lowest bits is invalid"),
+      &KeyError::LowestBitsInvalid => write!(f, "Lowest bits is invalid")
     }
   }
 }
@@ -51,8 +53,8 @@ impl Key {
     }
     arr.copy_from_slice(data);
     XPrv::from_bytes_verified(arr)
-      .map(|xprv| {
-        Self { xprv: xprv.derive(D_SCHEME, BIP44_PURPOSE).derive(D_SCHEME, BIP44_COIN_TYPE) }
+      .map(|xprv| Self {
+        xprv: xprv.derive(D_SCHEME, BIP44_PURPOSE).derive(D_SCHEME, BIP44_COIN_TYPE)
       })
       .map_err(|err| {
         let key_err: KeyError = err.into();
@@ -97,7 +99,8 @@ impl Key {
       return Err(KPError::InvalidAddress(path.address()).into());
     }
     Ok(
-      self.xprv
+      self
+        .xprv
         .derive(D_SCHEME, path.account())
         .derive(D_SCHEME, path.change())
         .derive(D_SCHEME, path.address())
@@ -111,16 +114,14 @@ impl IKey for Key {
   }
 
   fn pub_key(&self, path: &KeyPath) -> Result<Vec<u8>, Error> {
-    self.derive_private(path)
-      .map(|pk| Vec::from(pk.public().as_ref()))
+    self.derive_private(path).map(|pk| Vec::from(pk.public().as_ref()))
   }
 
   fn sign(&self, data: &[u8], path: &KeyPath) -> Result<Vec<u8>, Error> {
-    self.derive_private(path)
-      .map(|pk| {
-        let signature: Signature<Vec<u8>> = pk.sign(data);
-        Vec::from(signature.as_ref())
-      })
+    self.derive_private(path).map(|pk| {
+      let signature: Signature<Vec<u8>> = pk.sign(data);
+      Vec::from(signature.as_ref())
+    })
   }
 
   fn verify(&self, data: &[u8], signature: &[u8], path: &KeyPath) -> Result<bool, Error> {
@@ -130,10 +131,9 @@ impl IKey for Key {
     }
     sign.copy_from_slice(signature);
 
-    self.derive_private(path)
-      .map(|pk| {
-        let native_signature: Signature<Vec<u8>> = Signature::from_bytes(sign);
-        pk.verify(data, &native_signature)
-      })
+    self.derive_private(path).map(|pk| {
+      let native_signature: Signature<Vec<u8>> = Signature::from_bytes(sign);
+      pk.verify(data, &native_signature)
+    })
   }
 }

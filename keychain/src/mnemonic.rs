@@ -51,7 +51,9 @@ impl fmt::Display for Error {
       &Error::MnemonicToShort(size, min) => write!(f, "Mnemonic {} too short. Min: {}", size, min),
       &Error::MnemonicToLong(size, max) => write!(f, "Mnemonic {} too short. Max: {}", size, max),
       &Error::WrongNumberOfWords(count) => write!(f, "Wrong number of words {}", count),
-      &Error::UnsupportedWordFound(ref word) => write!(f, "Unsupported word found '{}'. Maybe wrong dictionary?", word),
+      &Error::UnsupportedWordFound(ref word) => {
+        write!(f, "Unsupported word found '{}'. Maybe wrong dictionary?", word)
+      }
       &Error::InvalidEntropySize(size) => write!(f, "Invalid entropy size {}", size),
       &Error::UnknownError(ref err) => write!(f, "Unknown mnemonic error: {}", err)
     }
@@ -66,8 +68,9 @@ impl From<bip39::Error> for Error {
       bip39::Error::WrongNumberOfWords(words) => Error::WrongNumberOfWords(words),
       bip39::Error::WrongKeySize(size) => Error::InvalidEntropySize(size),
       bip39::Error::LanguageError(ref err) => match err {
-        &bip39::dictionary::Error::MnemonicWordNotFoundInDictionary(ref word) => 
+        &bip39::dictionary::Error::MnemonicWordNotFoundInDictionary(ref word) => {
           Error::UnsupportedWordFound(word.clone())
+        }
       },
       _ => Error::UnknownError(Box::new(err))
     }
@@ -82,11 +85,15 @@ pub fn generate(size: usize, language: Language, entropy: &Entropy) -> Result<St
     let mut buf = [0u8];
     entropy.fill_bytes(&mut buf);
     buf[0]
-  }).to_mnemonics().to_string(language.to_dict());
+  })
+  .to_mnemonics()
+  .to_string(language.to_dict());
   Ok((*mnemonics).to_owned())
 }
 
-pub fn seed_from_mnemonic(mnemonic: &str, unique: &str, size: usize, language: Language) -> Result<Vec<u8>, Error> {
+pub fn seed_from_mnemonic(
+  mnemonic: &str, unique: &str, size: usize, language: Language
+) -> Result<Vec<u8>, Error> {
   let size_words = size / 32 * 3;
   let words = mnemonic.split(" ").filter(|part| part.len() > 0).collect::<Vec<&str>>();
   if words.len() > size_words {

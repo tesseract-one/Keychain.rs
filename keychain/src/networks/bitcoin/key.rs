@@ -1,8 +1,8 @@
-use key::{ Key as IKey, Error };
-use key_path::{ Error as KPError, KeyPath, BIP44_SOFT_UPPER_BOUND };
 use super::key_path::COIN_TYPE;
-use network::Network;
 use bip39;
+use key::{Error, Key as IKey};
+use key_path::{Error as KPError, KeyPath, BIP44_SOFT_UPPER_BOUND};
+use network::Network;
 
 use secp256k1_bip32::XPrv;
 
@@ -34,7 +34,8 @@ impl Key {
     if path.address() >= BIP44_SOFT_UPPER_BOUND {
       return Err(KPError::InvalidAddress(path.address()).into());
     }
-    self.xprv
+    self
+      .xprv
       .derive(path.purpose())
       .and_then(|pk| pk.derive(path.coin()))
       .and_then(|pk| pk.derive(path.account()))
@@ -54,15 +55,10 @@ impl IKey for Key {
   }
 
   fn sign(&self, data: &[u8], path: &KeyPath) -> Result<Vec<u8>, Error> {
-    self.derive_private(path)?
-      .sign(data)
-      .map_err(|err| Error::from_secp_sign_error(err))
+    self.derive_private(path)?.sign(data).map_err(|err| Error::from_secp_sign_error(err))
   }
 
   fn verify(&self, data: &[u8], signature: &[u8], path: &KeyPath) -> Result<bool, Error> {
-    self.derive_private(path)?
-      .public()
-      .verify(data, signature)
-      .map_err(|err| err.into())
+    self.derive_private(path)?.public().verify(data, signature).map_err(|err| err.into())
   }
 }

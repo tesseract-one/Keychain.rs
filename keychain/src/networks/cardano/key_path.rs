@@ -1,7 +1,7 @@
-use key_path::{ KeyPath as IKeyPath, Error, BIP44_SOFT_UPPER_BOUND, BIP44_PURPOSE };
+use key_path::{Error, KeyPath as IKeyPath, BIP44_PURPOSE, BIP44_SOFT_UPPER_BOUND};
 
 /// the BIP44 coin type is set, by default, to cardano ada.
-pub const BIP44_COIN_TYPE : u32 = 0x80000717;
+pub const BIP44_COIN_TYPE: u32 = 0x80000717;
 
 #[derive(Debug, Copy, Clone)]
 pub struct KeyPath {
@@ -37,7 +37,7 @@ impl IKeyPath for KeyPath {
   fn account(&self) -> u32 {
     self.account
   }
-  
+
   fn change(&self) -> u32 {
     self.change
   }

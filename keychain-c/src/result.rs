@@ -1,6 +1,6 @@
-use keychain::{ Error as RError };
+use keychain::Error as RError;
+use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
-use std::ffi::{ CStr, CString };
 
 pub trait Ptr<T: ?Sized> {
   unsafe fn as_ref(&self) -> &T;
@@ -41,7 +41,9 @@ impl Ptr<str> for ErrorPtr {
   }
 
   unsafe fn free(&mut self) {
-    if self.message.is_null() { return; }
+    if self.message.is_null() {
+      return;
+    }
     self.message.free();
   }
 }
@@ -63,17 +65,11 @@ impl ErrorPtr {
   }
 
   pub fn new(err: &RError) -> Self {
-    Self {
-      error_type: Self::error_type(err),
-      message: format!("{}", err).to_cstr()
-    }
+    Self { error_type: Self::error_type(err), message: format!("{}", err).to_cstr() }
   }
 
   pub fn panic(msg: &str) -> Self {
-    Self {
-      error_type: ErrorType::Panic,
-      message: msg.to_cstr()
-    }
+    Self { error_type: ErrorType::Panic, message: msg.to_cstr() }
   }
 }
 
@@ -92,7 +88,7 @@ impl<T: Copy> CResult<T> for Result<T, ErrorPtr> {
       Err(err) => {
         *error = *err;
         false
-      },
+      }
       Ok(value) => {
         *val = *value;
         true
@@ -105,7 +101,7 @@ impl<T: Copy> CResult<T> for Result<T, ErrorPtr> {
 #[derive(Copy, Clone)]
 pub struct DataPtr {
   ptr: *const u8,
-  len: usize 
+  len: usize
 }
 
 impl ArrayPtr<u8> for DataPtr {
@@ -114,7 +110,9 @@ impl ArrayPtr<u8> for DataPtr {
   }
 
   unsafe fn free(&mut self) {
-    if self.ptr.is_null() { return; }
+    if self.ptr.is_null() {
+      return;
+    }
     let _ = Vec::from_raw_parts(self.ptr as *mut u8, self.len, self.len);
     self.ptr = std::ptr::null();
   }
@@ -161,17 +159,17 @@ pub unsafe extern "C" fn delete_string(ptr: CharPtr) {
 }
 
 pub trait ToCString {
-  fn to_cstr(&self) -> CharPtr; 
+  fn to_cstr(&self) -> CharPtr;
 }
 
 impl ToCString for &str {
   fn to_cstr(&self) -> CharPtr {
     CString::new(self.as_bytes()).unwrap().into_raw()
-  } 
+  }
 }
 
 impl ToCString for String {
   fn to_cstr(&self) -> CharPtr {
     CString::new(self.as_bytes()).unwrap().into_raw()
-  } 
+  }
 }

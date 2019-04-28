@@ -1,8 +1,8 @@
-use cryptoxide::sha3::Sha3;
-use cryptoxide::sha2::Sha256;
-use cryptoxide::digest::Digest;
 use super::error::KeyError;
-use secp256k1::{ PublicKey, Message, Signature, util, verify };
+use cryptoxide::digest::Digest;
+use cryptoxide::sha2::Sha256;
+use cryptoxide::sha3::Sha3;
+use secp256k1::{util, verify, Message, PublicKey, Signature};
 
 pub struct XPub(PublicKey);
 
@@ -32,7 +32,7 @@ impl XPub {
 
     Signature::parse_slice(signature)
       .map(|signature| verify(&message, &signature, &self.0))
-      .map_err(|err| err.into() )
+      .map_err(|err| err.into())
   }
 
   pub fn sha256(&self) -> [u8; util::MESSAGE_SIZE] {

@@ -1,10 +1,10 @@
-use std::fmt;
-use key_path::{ KeyPath, Error as KeyPathError };
+use key_path::{Error as KeyPathError, KeyPath};
+use mnemonic::Error as MnemonicError;
 use network::Network;
-use mnemonic::{ Error as MnemonicError };
+use std::fmt;
 
 #[cfg(any(feature = "ethereum", feature = "bitcoin"))]
-use secp256k1_bip32::{ KeyError as SecpKeyError };
+use secp256k1_bip32::KeyError as SecpKeyError;
 
 #[derive(Debug)]
 pub enum Error {
@@ -21,9 +21,13 @@ impl fmt::Display for Error {
     match self {
       &Error::InvalidKeyPath(ref err) => write!(f, "Key Path error: {}", err),
       &Error::InvalidMnemonic(ref err) => write!(f, "Mnemonic error: {}", err),
-      &Error::InvalidKeySize(size, good) => write!(f, "Invalid key size {}, accepts {}", size, good),
+      &Error::InvalidKeySize(size, good) => {
+        write!(f, "Invalid key size {}, accepts {}", size, good)
+      }
       &Error::InvalidKeyData(ref err) => write!(f, "Invalid key data: {}", err),
-      &Error::InvalidSignatureSize(size, good) => write!(f, "Invalid signature size {}, accepts {}", size, good),
+      &Error::InvalidSignatureSize(size, good) => {
+        write!(f, "Invalid signature size {}, accepts {}", size, good)
+      }
       &Error::SignError(ref err) => write!(f, "Sign error: {}", err)
     }
   }
@@ -69,7 +73,10 @@ pub trait Key {
 
   fn verify(&self, data: &[u8], signature: &[u8], path: &KeyPath) -> Result<bool, Error>;
 
-  fn boxed(self) -> Box<Key> where Self: Sized + 'static {
+  fn boxed(self) -> Box<Key>
+  where
+    Self: Sized + 'static
+  {
     Box::new(self)
   }
 }

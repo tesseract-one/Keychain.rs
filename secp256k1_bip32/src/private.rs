@@ -1,12 +1,12 @@
 use bip39;
+use byteorder::{BigEndian, ByteOrder, WriteBytesExt};
+use cryptoxide::digest::Digest;
 use cryptoxide::hmac::Hmac;
 use cryptoxide::mac::Mac;
-use cryptoxide::digest::Digest;
-use cryptoxide::sha2::{ Sha512, Sha256 };
+use cryptoxide::sha2::{Sha256, Sha512};
 use cryptoxide::sha3::Sha3;
-use ripemd160::{ Ripemd160, Digest as RipeDigest };
-use secp256k1::{ SecretKey, PublicKey, Message, util, sign };
-use byteorder::{ BigEndian, WriteBytesExt, ByteOrder };
+use ripemd160::{Digest as RipeDigest, Ripemd160};
+use secp256k1::{sign, util, Message, PublicKey, SecretKey};
 
 use super::error::KeyError;
 use super::public::XPub;
@@ -15,32 +15,30 @@ const HMAC_KEY: &[u8] = b"Bitcoin seed";
 const BIP44_SOFT_UPPER_BOUND: u32 = 0x80000000;
 
 mod data_layout {
-    pub const DEPTH_SIZE  : usize = 1;
-    pub const FINGERPRINT_SIZE : usize = 4;
-    pub const INDEX_SIZE   : usize = 4;
-    pub const CHAIN_CODE_SIZE : usize = 32;
-    pub const KEY_SIZE : usize = super::util::SECRET_KEY_SIZE;
-    pub const CHECKSUM_SIZE : usize = 4;
+  pub const DEPTH_SIZE: usize = 1;
+  pub const FINGERPRINT_SIZE: usize = 4;
+  pub const INDEX_SIZE: usize = 4;
+  pub const CHAIN_CODE_SIZE: usize = 32;
+  pub const KEY_SIZE: usize = super::util::SECRET_KEY_SIZE;
+  pub const CHECKSUM_SIZE: usize = 4;
 
-    pub const KEY_DATA_SIZE : usize = (
-      DEPTH_SIZE + FINGERPRINT_SIZE + INDEX_SIZE +
-      CHAIN_CODE_SIZE + KEY_SIZE + CHECKSUM_SIZE
-    );
+  pub const KEY_DATA_SIZE: usize =
+    (DEPTH_SIZE + FINGERPRINT_SIZE + INDEX_SIZE + CHAIN_CODE_SIZE + KEY_SIZE + CHECKSUM_SIZE);
 
-    pub const ENTROPY_SIZE: usize = CHAIN_CODE_SIZE + KEY_SIZE;
+  pub const ENTROPY_SIZE: usize = CHAIN_CODE_SIZE + KEY_SIZE;
 
-    pub const DEPTH_START         : usize = 0;
-    pub const DEPTH_END           : usize = DEPTH_START + DEPTH_SIZE;
-    pub const FINGERPRINT_START   : usize = DEPTH_END;
-    pub const FINGERPRINT_END     : usize = FINGERPRINT_START + FINGERPRINT_SIZE;
-    pub const INDEX_START         : usize = FINGERPRINT_END;
-    pub const INDEX_END           : usize = INDEX_START + INDEX_SIZE;
-    pub const CHAIN_CODE_START    : usize = INDEX_END;
-    pub const CHAIN_CODE_END      : usize = CHAIN_CODE_START + CHAIN_CODE_SIZE;
-    pub const KEY_START           : usize = CHAIN_CODE_END;
-    pub const KEY_END             : usize = KEY_START + KEY_SIZE;
-    pub const CHECKSUM_START      : usize = KEY_END;
-    pub const CHECKSUM_END        : usize = CHECKSUM_START + CHECKSUM_SIZE;
+  pub const DEPTH_START: usize = 0;
+  pub const DEPTH_END: usize = DEPTH_START + DEPTH_SIZE;
+  pub const FINGERPRINT_START: usize = DEPTH_END;
+  pub const FINGERPRINT_END: usize = FINGERPRINT_START + FINGERPRINT_SIZE;
+  pub const INDEX_START: usize = FINGERPRINT_END;
+  pub const INDEX_END: usize = INDEX_START + INDEX_SIZE;
+  pub const CHAIN_CODE_START: usize = INDEX_END;
+  pub const CHAIN_CODE_END: usize = CHAIN_CODE_START + CHAIN_CODE_SIZE;
+  pub const KEY_START: usize = CHAIN_CODE_END;
+  pub const KEY_END: usize = KEY_START + KEY_SIZE;
+  pub const CHECKSUM_START: usize = KEY_END;
+  pub const CHECKSUM_END: usize = CHECKSUM_START + CHECKSUM_SIZE;
 }
 
 pub struct XPrv {
@@ -80,15 +78,7 @@ impl XPrv {
 
     let pk = SecretKey::parse_slice(&data[KEY_START..KEY_END]).map_err(|e| KeyError::from(e))?;
 
-    Ok(
-      Self {
-        depth,
-        parent_fingerprint,
-        index,
-        chaincode,
-        key: pk
-      }
-    )
+    Ok(Self { depth, parent_fingerprint, index, chaincode, key: pk })
   }
 
   pub fn from_seed(seed: &bip39::Seed) -> Result<Self, KeyError> {
@@ -105,16 +95,17 @@ impl XPrv {
     let mut i_l = [0u8; KEY_SIZE];
     let mut i_r = [0u8; CHAIN_CODE_SIZE];
     i_l.copy_from_slice(&entropy[0..KEY_SIZE]);
-    i_r.copy_from_slice(&entropy[KEY_SIZE..(KEY_SIZE+CHAIN_CODE_SIZE)]);
+    i_r.copy_from_slice(&entropy[KEY_SIZE..(KEY_SIZE + CHAIN_CODE_SIZE)]);
 
     let pk = SecretKey::parse_slice(&i_l).map_err(|err| KeyError::from(err))?;
 
-    Ok(
-      Self {
-        key: pk, chaincode: i_r, depth: 0, index: 0,
-        parent_fingerprint: [0u8; FINGERPRINT_SIZE]
-      }
-    )
+    Ok(Self {
+      key: pk,
+      chaincode: i_r,
+      depth: 0,
+      index: 0,
+      parent_fingerprint: [0u8; FINGERPRINT_SIZE]
+    })
   }
 
   pub fn public(&self) -> XPub {
@@ -202,17 +193,18 @@ impl XPrv {
     }
 
     let mut chaincode = [0u8; CHAIN_CODE_SIZE];
-    chaincode.copy_from_slice(&entropy[KEY_SIZE..(KEY_SIZE+CHAIN_CODE_SIZE)]);
+    chaincode.copy_from_slice(&entropy[KEY_SIZE..(KEY_SIZE + CHAIN_CODE_SIZE)]);
 
-    let tweak_pk = SecretKey::parse_slice(&entropy[0..KEY_SIZE]).map_err(|err| KeyError::from(err))?;
+    let tweak_pk =
+      SecretKey::parse_slice(&entropy[0..KEY_SIZE]).map_err(|err| KeyError::from(err))?;
 
     let mut newpk = self.key.clone();
 
     if newpk.tweak_add_assign(&tweak_pk).is_err() {
-      if (hardened && index < std::u32::MAX) || (!hardened && index < BIP44_SOFT_UPPER_BOUND)  {
+      if (hardened && index < std::u32::MAX) || (!hardened && index < BIP44_SOFT_UPPER_BOUND) {
         return self.derive(index + 1);
       } else {
-        return Err(KeyError::TweakOutOfRange)
+        return Err(KeyError::TweakOutOfRange);
       }
     }
 
@@ -221,14 +213,12 @@ impl XPrv {
     let mut fingerprint = [0u8; FINGERPRINT_SIZE];
     fingerprint.copy_from_slice(&hasher.result()[0..FINGERPRINT_SIZE]);
 
-    Ok(
-      Self {
-        key: newpk,
-        depth: self.depth + 1,
-        chaincode,
-        index,
-        parent_fingerprint: fingerprint
-      }
-    )
+    Ok(Self {
+      key: newpk,
+      depth: self.depth + 1,
+      chaincode,
+      index,
+      parent_fingerprint: fingerprint
+    })
   }
 }

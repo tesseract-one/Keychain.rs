@@ -1,5 +1,5 @@
+use key::{Error as KeyError, Key};
 use network::Network;
-use key::{ Key, Error as KeyError };
 
 #[derive(Debug, Copy, Clone)]
 pub struct SeedSize {
@@ -18,7 +18,9 @@ impl SeedSize {
 }
 
 pub trait KeyFactory {
-  fn new() -> Self where Self: Sized;
+  fn new() -> Self
+  where
+    Self: Sized;
 
   fn network(&self) -> Network;
 
@@ -28,7 +30,10 @@ pub trait KeyFactory {
 
   fn key_data_from_seed(&self, seed: &[u8]) -> Result<Vec<u8>, KeyError>;
 
-  fn boxed() -> Box<Self> where Self: Sized {
+  fn boxed() -> Box<Self>
+  where
+    Self: Sized
+  {
     Box::new(Self::new())
   }
 }

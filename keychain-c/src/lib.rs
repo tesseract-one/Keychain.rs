@@ -1,17 +1,17 @@
 extern crate keychain;
 extern crate num_traits;
 
-mod network;
-mod manager;
-mod result;
-mod keychain_;
 mod key_path;
+mod keychain_;
+mod manager;
+mod network;
 mod panic;
+mod result;
 
-pub use network::*;
-pub use manager::*;
-pub use keychain_::*;
 pub use key_path::*;
+pub use keychain_::*;
+pub use manager::*;
+pub use network::*;
 pub use result::*;
 
 #[cfg(feature = "ethereum")]

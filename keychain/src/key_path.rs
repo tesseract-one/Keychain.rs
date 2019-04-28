@@ -25,15 +25,25 @@ pub enum Error {
 impl fmt::Display for Error {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     match self {
-      &Error::InvalidPartsCount(count) => write!(f, "Invalid parts count {}, expected: {}", count, KEY_PATH_PARTS_COUNT),
-      &Error::InvalidPurpose(purpose, exptected) => write!(f, "Invalid purpose {}, expected: {}", purpose, exptected),
-      &Error::InvalidPathMarker(ref marker) => write!(f, "Invalid path marker '{}', expected: 'm'", marker),
-      &Error::InvalidCoin(coin, accepts) => write!(f, "Invalid coin {}, expected: {}", coin, accepts),
+      &Error::InvalidPartsCount(count) => {
+        write!(f, "Invalid parts count {}, expected: {}", count, KEY_PATH_PARTS_COUNT)
+      }
+      &Error::InvalidPurpose(purpose, exptected) => {
+        write!(f, "Invalid purpose {}, expected: {}", purpose, exptected)
+      }
+      &Error::InvalidPathMarker(ref marker) => {
+        write!(f, "Invalid path marker '{}', expected: 'm'", marker)
+      }
+      &Error::InvalidCoin(coin, accepts) => {
+        write!(f, "Invalid coin {}, expected: {}", coin, accepts)
+      }
       &Error::InvalidAccount(account) => write!(f, "Invalid account {}", account),
       &Error::InvalidChange(change) => write!(f, "Invalid change {}", change),
       &Error::InvalidAddress(addr) => write!(f, "Invalid address {}", addr),
       &Error::EmptyValueAtIndex(index) => write!(f, "Found empty value at index: {}", index),
-      &Error::ParseErrorAtIndex(index, ref err) => write!(f, "Can't parse number at index {}, error: {}", index, err),
+      &Error::ParseErrorAtIndex(index, ref err) => {
+        write!(f, "Can't parse number at index {}, error: {}", index, err)
+      }
     }
   }
 }
@@ -59,7 +69,7 @@ pub struct GenericKeyPath {
 impl GenericKeyPath {
   fn hard_int(index: usize, s: &str) -> Result<u32, Error> {
     if s.len() == 0 {
-      return Err(Error::EmptyValueAtIndex(index))
+      return Err(Error::EmptyValueAtIndex(index));
     }
     Self::soft_int(index, &s[..s.len() - 1]).map(|val| val + BIP44_SOFT_UPPER_BOUND)
   }
@@ -68,15 +78,14 @@ impl GenericKeyPath {
     if s.len() == 0 {
       return Err(Error::EmptyValueAtIndex(index));
     }
-    str::parse::<u32>(s)
-      .map_err(|err| Error::ParseErrorAtIndex(index, err))
+    str::parse::<u32>(s).map_err(|err| Error::ParseErrorAtIndex(index, err))
   }
 
   fn parse_int(index: usize, s: &str) -> Result<u32, Error> {
     if s.len() == 0 {
       return Err(Error::EmptyValueAtIndex(index));
     }
-    if &s[s.len()-1..] == "'" {
+    if &s[s.len() - 1..] == "'" {
       Self::hard_int(index, s)
     } else {
       Self::soft_int(index, s)
@@ -92,7 +101,7 @@ impl GenericKeyPath {
   }
 
   pub fn from(path: &str) -> Result<Self, Error> {
-    let parts: Vec<&str> = path.split("/").map(|s| { s.trim() }).collect();
+    let parts: Vec<&str> = path.split("/").map(|s| s.trim()).collect();
     if parts.len() != KEY_PATH_PARTS_COUNT {
       return Err(Error::InvalidPartsCount(parts.len()));
     }

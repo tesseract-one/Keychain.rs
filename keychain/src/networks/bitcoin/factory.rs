@@ -1,7 +1,7 @@
-use key_factory::{ KeyFactory as IKeyFactory, SeedSize };
-use key::{ Key as IKey, Error as KeyError };
-use bip39::Seed;
 use super::key::Key;
+use bip39::Seed;
+use key::{Error as KeyError, Key as IKey};
+use key_factory::{KeyFactory as IKeyFactory, SeedSize};
 use network::Network;
 
 pub struct KeyFactory;
@@ -24,8 +24,7 @@ impl IKeyFactory for KeyFactory {
   }
 
   fn key_data_from_seed(&self, seed: &[u8]) -> Result<Vec<u8>, KeyError> {
-    let seed = Seed::from_slice(seed)
-      .map_err(|err| KeyError::InvalidMnemonic(err.into()))?;
+    let seed = Seed::from_slice(seed).map_err(|err| KeyError::InvalidMnemonic(err.into()))?;
     Key::data_from_seed(&seed)
   }
 }

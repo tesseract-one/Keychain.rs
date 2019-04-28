@@ -46,21 +46,25 @@ impl VersionedData {
 
 // Custom data serializaion/deserialization methods
 mod serialize {
-  use serde::{ Serializer, Deserialize, Deserializer };
-  use std::collections::HashMap;
   use network::Network;
+  use serde::{Deserialize, Deserializer, Serializer};
+  use std::collections::HashMap;
 
   base64_serde_type!(pub Base64, base64::STANDARD);
-  
-  pub fn se_key_map<S: Serializer>(keys: &HashMap<Network, Vec<u8>>, serializer: S) -> Result<S::Ok, S::Error> {
+
+  pub fn se_key_map<S: Serializer>(
+    keys: &HashMap<Network, Vec<u8>>, serializer: S
+  ) -> Result<S::Ok, S::Error> {
     #[derive(Serialize)]
     struct Wrapper<'a>(#[serde(with = "Base64")] &'a Vec<u8>);
 
     let map = keys.iter().map(|(k, v)| (k, Wrapper(v)));
     serializer.collect_seq(map)
   }
-  
-  pub fn de_key_map<'de, D: Deserializer<'de>>(deserializer: D) -> Result<HashMap<Network, Vec<u8>>, D::Error> {
+
+  pub fn de_key_map<'de, D: Deserializer<'de>>(
+    deserializer: D
+  ) -> Result<HashMap<Network, Vec<u8>>, D::Error> {
     #[derive(Deserialize)]
     struct Wrapper(#[serde(with = "Base64")] Vec<u8>);
 

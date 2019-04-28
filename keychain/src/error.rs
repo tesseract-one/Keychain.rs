@@ -1,11 +1,11 @@
+use crypt::DecryptError as CryptError;
+use data::Error as DataError;
 use entropy::OsEntropyError;
+use key::Error as KeyError;
+use key_path::Error as KeyPathError;
+use mnemonic::Error as MnemonicError;
 use network::Network;
-use data::{ Error as DataError };
-use key::{ Error as KeyError };
-use mnemonic::{ Error as MnemonicError };
-use crypt::{ DecryptError as CryptError };
-use key_path::{ Error as KeyPathError };
-use std::error::{ Error as AnyError };
+use std::error::Error as AnyError;
 use std::fmt;
 
 #[derive(Debug)]
@@ -27,7 +27,9 @@ impl fmt::Display for Error {
     match self {
       &Error::WrongPassword => write!(f, "Wrong password"),
       &Error::NotEnoughData => write!(f, "Not enough data to load keychain"),
-      &Error::CantCalculateSeedSize(min, max) => write!(f, "Can't calculate seed size for networks: min({}), max({})", min, max),
+      &Error::CantCalculateSeedSize(min, max) => {
+        write!(f, "Can't calculate seed size for networks: min({}), max({})", min, max)
+      }
       &Error::InvalidSeedSize(size) => write!(f, "Invalid seed size {}", size),
       &Error::KeyDoesNotExist(nt) => write!(f, "Key for {} doesn't exist", nt),
       &Error::DataError(ref err) => write!(f, "Data parsing error {}", err),
@@ -63,7 +65,7 @@ impl From<CryptError> for Error {
   fn from(err: CryptError) -> Self {
     match err {
       CryptError::NotEnoughData => Error::NotEnoughData,
-      CryptError::DecryptionFailed => Error::WrongPassword,
+      CryptError::DecryptionFailed => Error::WrongPassword
     }
   }
 }

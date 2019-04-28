@@ -1,9 +1,9 @@
-use keychain::{ Keychain as RKeychain };
-use network::{ Network, NetworksPtr };
 use key_path::KeyPath;
-use result::{ DataPtr, CResult, ErrorPtr, Ptr };
-use std::ffi::{ c_void };
-use panic::{ handle_exception_result, handle_exception };
+use keychain::Keychain as RKeychain;
+use network::{Network, NetworksPtr};
+use panic::{handle_exception, handle_exception_result};
+use result::{CResult, DataPtr, ErrorPtr, Ptr};
+use std::ffi::c_void;
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -15,7 +15,9 @@ impl Ptr<RKeychain> for KeychainPtr {
   }
 
   unsafe fn free(&mut self) {
-    if self.0.is_null() { return; }
+    if self.0.is_null() {
+      return;
+    }
     let _: Box<RKeychain> = Box::from_raw(self.0 as *mut RKeychain);
     self.0 = std::ptr::null_mut();
   }
@@ -36,10 +38,7 @@ pub struct NewKeychainData {
 
 impl NewKeychainData {
   pub fn new(keychain: RKeychain, data: &[u8]) -> Self {
-    Self {
-      data: DataPtr::from(data),
-      keychain: KeychainPtr::new(keychain)
-    }
+    Self { data: DataPtr::from(data), keychain: KeychainPtr::new(keychain) }
   }
 }
 
@@ -47,11 +46,7 @@ impl NewKeychainData {
 pub unsafe extern "C" fn keychain_networks(
   keychain: &KeychainPtr, networks: &mut NetworksPtr, error: &mut ErrorPtr
 ) -> bool {
-  handle_exception(|| {
-    keychain.as_ref()
-      .networks()
-      .into()
-  }).response(networks, error)
+  handle_exception(|| keychain.as_ref().networks().into()).response(networks, error)
 }
 
 #[no_mangle]
@@ -59,10 +54,9 @@ pub unsafe extern "C" fn keychain_pub_key(
   keychain: &KeychainPtr, network: Network, path: KeyPath, key: &mut DataPtr, error: &mut ErrorPtr
 ) -> bool {
   handle_exception_result(|| {
-    keychain.as_ref()
-      .pub_key(&network.into(), &path)
-      .map(|data| DataPtr::from(data))
-  }).response(key, error)
+    keychain.as_ref().pub_key(&network.into(), &path).map(|data| DataPtr::from(data))
+  })
+  .response(key, error)
 }
 
 #[no_mangle]
@@ -72,26 +66,23 @@ pub unsafe extern "C" fn keychain_sign(
 ) -> bool {
   handle_exception_result(|| {
     let data_slice = std::slice::from_raw_parts(data, data_len);
-    keychain.as_ref()
-      .sign(&network.into(), data_slice, &path)
-      .map(|data| DataPtr::from(data))
-  }).response(signature, error)
+    keychain.as_ref().sign(&network.into(), data_slice, &path).map(|data| DataPtr::from(data))
+  })
+  .response(signature, error)
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn keychain_verify(
-  keychain: &KeychainPtr, network: Network,
-  data: *const u8, data_len: usize,
-  signature: *const u8, signature_len: usize,
-  path: KeyPath, result: &mut bool, error: &mut ErrorPtr
+  keychain: &KeychainPtr, network: Network, data: *const u8, data_len: usize, signature: *const u8,
+  signature_len: usize, path: KeyPath, result: &mut bool, error: &mut ErrorPtr
 ) -> bool {
   handle_exception_result(|| {
     let data_slice = std::slice::from_raw_parts(data, data_len);
     let signature_slice = std::slice::from_raw_parts(signature, signature_len);
 
-    keychain.as_ref()
-      .verify(&network.into(), data_slice, signature_slice, &path)
-  }).response(result, error)
+    keychain.as_ref().verify(&network.into(), data_slice, signature_slice, &path)
+  })
+  .response(result, error)
 }
 
 #[no_mangle]

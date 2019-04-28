@@ -1,11 +1,11 @@
-use keychain::{ KeychainManager as RKeychainManager, Language as RLanguage };
-use keychain_::{ NewKeychainData, KeychainPtr };
-use std::ffi::{ c_void, CStr };
-use std::os::raw::c_char;
-use result::{ CResult, CharPtr, ToCString, DataPtr, ErrorPtr, Ptr };
+use keychain::{KeychainManager as RKeychainManager, Language as RLanguage};
+use keychain_::{KeychainPtr, NewKeychainData};
 use network::Network;
 use num_traits::FromPrimitive;
-use panic::{ handle_exception_result, handle_exception };
+use panic::{handle_exception, handle_exception_result};
+use result::{CResult, CharPtr, DataPtr, ErrorPtr, Ptr, ToCString};
+use std::ffi::{c_void, CStr};
+use std::os::raw::c_char;
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -17,7 +17,9 @@ impl Ptr<RKeychainManager> for KeychainManagerPtr {
   }
 
   unsafe fn free(&mut self) {
-    if self.0.is_null() { return; }
+    if self.0.is_null() {
+      return;
+    }
     let _: Box<RKeychainManager> = Box::from_raw(self.0 as *mut RKeychainManager);
     self.0 = std::ptr::null_mut();
   }
@@ -49,20 +51,20 @@ impl Language {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn keychain_manager_new(manager: &mut KeychainManagerPtr, error: &mut ErrorPtr) -> bool {
+pub unsafe extern "C" fn keychain_manager_new(
+  manager: &mut KeychainManagerPtr, error: &mut ErrorPtr
+) -> bool {
   handle_exception_result(|| {
-    RKeychainManager::new()
-      .map(|manager| KeychainManagerPtr::new(manager))
-  }).response(manager, error)
+    RKeychainManager::new().map(|manager| KeychainManagerPtr::new(manager))
+  })
+  .response(manager, error)
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn keychain_manager_has_network(
   manager: &KeychainManagerPtr, network: Network, has: &mut bool, error: &mut ErrorPtr
 ) -> bool {
-  handle_exception(|| {
-    manager.as_ref().has_network(&network.into())
-  }).response(has, error)
+  handle_exception(|| manager.as_ref().has_network(&network.into())).response(has, error)
 }
 
 #[no_mangle]
@@ -70,9 +72,9 @@ pub unsafe extern "C" fn keychain_manager_generate_mnemonic(
   manager: &KeychainManagerPtr, lang: Language, mnemonic: &mut CharPtr, error: &mut ErrorPtr
 ) -> bool {
   handle_exception_result(|| {
-    manager.as_ref().generate_mnemonic(lang.rust())
-      .map(|mnemonic| mnemonic.to_cstr())
-  }).response(mnemonic, error)
+    manager.as_ref().generate_mnemonic(lang.rust()).map(|mnemonic| mnemonic.to_cstr())
+  })
+  .response(mnemonic, error)
 }
 
 #[no_mangle]
@@ -83,10 +85,12 @@ pub unsafe extern "C" fn keychain_manager_keychain_from_seed(
   handle_exception_result(|| {
     let seed_slice = std::slice::from_raw_parts(seed, seed_len);
     let pwd = CStr::from_ptr(password as *const c_char).to_str().unwrap();
-    manager.as_ref()
+    manager
+      .as_ref()
       .keychain_from_seed(seed_slice, pwd)
       .map(|(keychain, data)| NewKeychainData::new(keychain, &data))
-  }).response(data, error)
+  })
+  .response(data, error)
 }
 
 #[no_mangle]
@@ -97,10 +101,12 @@ pub unsafe extern "C" fn keychain_manager_keychain_from_mnemonic(
   handle_exception_result(|| {
     let mnemonic = CStr::from_ptr(mnemonic as *const c_char).to_str().unwrap();
     let pwd = CStr::from_ptr(password as *const c_char).to_str().unwrap();
-    manager.as_ref()
+    manager
+      .as_ref()
       .keychain_from_mnemonic(mnemonic, pwd, lang.rust())
       .map(|(keychain, data)| NewKeychainData::new(keychain, &data))
-  }).response(data, error)
+  })
+  .response(data, error)
 }
 
 #[no_mangle]
@@ -111,25 +117,23 @@ pub unsafe extern "C" fn keychain_manager_keychain_from_data(
   handle_exception_result(|| {
     let data_slice = std::slice::from_raw_parts(data, data_len);
     let pwd = CStr::from_ptr(password as *const c_char).to_str().unwrap();
-    manager.as_ref()
-      .keychain_from_data(data_slice, pwd)
-      .map(|keychain| KeychainPtr::new(keychain))
-  }).response(keychain, error)
+    manager.as_ref().keychain_from_data(data_slice, pwd).map(|keychain| KeychainPtr::new(keychain))
+  })
+  .response(keychain, error)
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn keychain_manager_change_password(
-  manager: &KeychainManagerPtr, data: *const u8, data_len: usize, old_password: CharPtr, new_password: CharPtr,
-  response: &mut DataPtr, error: &mut ErrorPtr 
+  manager: &KeychainManagerPtr, data: *const u8, data_len: usize, old_password: CharPtr,
+  new_password: CharPtr, response: &mut DataPtr, error: &mut ErrorPtr
 ) -> bool {
   handle_exception_result(|| {
     let data_slice = std::slice::from_raw_parts(data, data_len);
     let old_pwd = CStr::from_ptr(old_password as *const c_char).to_str().unwrap();
     let new_pwd = CStr::from_ptr(new_password as *const c_char).to_str().unwrap();
-    manager.as_ref()
-      .change_password(data_slice, old_pwd, new_pwd)
-      .map(|data| DataPtr::from(data))
-  }).response(response, error)
+    manager.as_ref().change_password(data_slice, old_pwd, new_pwd).map(|data| DataPtr::from(data))
+  })
+  .response(response, error)
 }
 
 #[no_mangle]

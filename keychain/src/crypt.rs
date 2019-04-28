@@ -2,26 +2,26 @@ use cryptoxide::chacha20poly1305::ChaCha20Poly1305;
 use cryptoxide::hmac::Hmac;
 use cryptoxide::pbkdf2::pbkdf2;
 use cryptoxide::sha2::Sha512;
-use std::iter::repeat;
-use std::error;
 use entropy::Entropy;
+use std::error;
+use std::iter::repeat;
 
 mod password_encryption_parameter {
-    pub const ITER       : u32   = 19_162;
-    pub const SALT_SIZE  : usize = 32;
-    pub const NONCE_SIZE : usize = 12;
-    pub const KEY_SIZE   : usize = 32;
-    pub const TAG_SIZE   : usize = 16;
+  pub const ITER: u32 = 19_162;
+  pub const SALT_SIZE: usize = 32;
+  pub const NONCE_SIZE: usize = 12;
+  pub const KEY_SIZE: usize = 32;
+  pub const TAG_SIZE: usize = 16;
 
-    pub const METADATA_SIZE : usize = SALT_SIZE + NONCE_SIZE + TAG_SIZE;
+  pub const METADATA_SIZE: usize = SALT_SIZE + NONCE_SIZE + TAG_SIZE;
 
-    pub const SALT_START      : usize = 0;
-    pub const SALT_END        : usize = SALT_START + SALT_SIZE;
-    pub const NONCE_START     : usize = SALT_END;
-    pub const NONCE_END       : usize = NONCE_START + NONCE_SIZE;
-    pub const TAG_START       : usize = NONCE_END;
-    pub const TAG_END         : usize = TAG_START + TAG_SIZE;
-    pub const ENCRYPTED_START : usize = TAG_END;
+  pub const SALT_START: usize = 0;
+  pub const SALT_END: usize = SALT_START + SALT_SIZE;
+  pub const NONCE_START: usize = SALT_END;
+  pub const NONCE_END: usize = NONCE_START + NONCE_SIZE;
+  pub const TAG_START: usize = NONCE_END;
+  pub const TAG_END: usize = TAG_START + TAG_SIZE;
+  pub const ENCRYPTED_START: usize = TAG_END;
 }
 
 #[derive(Debug)]
@@ -36,7 +36,6 @@ impl std::fmt::Display for DecryptError {
       &DecryptError::NotEnoughData => write!(f, "Not enough data for decryption."),
       &DecryptError::DecryptionFailed => write!(f, "Decryption failed. Check your key")
     }
-    
   }
 }
 
@@ -57,9 +56,9 @@ pub fn encrypt(data: &[u8], password: &str, entropy: &Entropy) -> Vec<u8> {
     key
   };
 
-  let mut tag = [0;TAG_SIZE];
-  let mut encrypted : Vec<u8> = repeat(0).take(data.len()).collect();
-  
+  let mut tag = [0; TAG_SIZE];
+  let mut encrypted: Vec<u8> = repeat(0).take(data.len()).collect();
+
   ChaCha20Poly1305::new(&key, &nonce, &[]).encrypt(&data, &mut encrypted, &mut tag);
 
   let mut output = Vec::with_capacity(data.len() + METADATA_SIZE);
@@ -90,9 +89,9 @@ pub fn decrypt(data: &[u8], password: &str) -> Result<Vec<u8>, DecryptError> {
     key
   };
 
-  let mut decrypted : Vec<u8> = repeat(0).take(encrypted.len()).collect();
-  let decryption_succeed = ChaCha20Poly1305::new(&key, &nonce, &[])
-    .decrypt(&encrypted, &mut decrypted, &tag);
+  let mut decrypted: Vec<u8> = repeat(0).take(encrypted.len()).collect();
+  let decryption_succeed =
+    ChaCha20Poly1305::new(&key, &nonce, &[]).decrypt(&encrypted, &mut decrypted, &tag);
 
   if decryption_succeed {
     Ok(decrypted)

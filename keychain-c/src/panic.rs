@@ -1,12 +1,14 @@
-use std::panic;
 use keychain::Error;
 use result::ErrorPtr;
+use std::panic;
 
 pub fn handle_exception<F: FnOnce() -> R + panic::UnwindSafe, R>(func: F) -> Result<R, ErrorPtr> {
   handle_exception_result(|| Ok(func()))
 }
 
-pub fn handle_exception_result<F: FnOnce() -> Result<R, Error> + panic::UnwindSafe, R>(func: F) -> Result<R, ErrorPtr> {
+pub fn handle_exception_result<F: FnOnce() -> Result<R, Error> + panic::UnwindSafe, R>(
+  func: F
+) -> Result<R, ErrorPtr> {
   match panic::catch_unwind(func) {
     Ok(res) => res.map_err(|err| ErrorPtr::new(&err)),
     Err(err) => {

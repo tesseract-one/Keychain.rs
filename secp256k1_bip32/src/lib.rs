@@ -1,9 +1,9 @@
 extern crate bip39;
 
-extern crate cryptoxide;
-extern crate secp256k1;
 extern crate byteorder;
+extern crate cryptoxide;
 extern crate ripemd160;
+extern crate secp256k1;
 
 mod error;
 mod private;
