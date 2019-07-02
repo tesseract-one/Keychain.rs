@@ -12,7 +12,7 @@ extern crate base64;
 
 // Crypt
 extern crate cryptoxide;
-extern crate rand;
+extern crate rand_os;
 
 // Enum conversion to and from number
 #[macro_use]

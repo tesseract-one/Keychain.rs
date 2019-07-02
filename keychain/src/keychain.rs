@@ -15,6 +15,10 @@ impl Keychain {
     Keychain { keys: converted }
   }
 
+  pub fn has_network(&self, net: &Network) -> bool {
+    self.keys.get(net).is_some()
+  }
+
   pub fn networks(&self) -> Vec<Network> {
     self.keys.keys().cloned().collect()
   }

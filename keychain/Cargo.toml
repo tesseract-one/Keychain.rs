@@ -7,7 +7,7 @@ description = "Tesseract Multi-Network Keychain Implementation"
 keywords = [ "Wallet", "Tesseract", "Cardano", "Ethereum", "Bitcoin" ]
 
 [dependencies]
-rand = "0.6"
+rand_os = "0.2"
 cryptoxide = "0.1"
 serde = "1.0"
 serde_derive = "1.0"
@@ -21,7 +21,7 @@ num-traits = "0.2"
 bip39 = { path = "../bip39" }
 
 # cardano
-ed25519-bip32 = { git = "https://github.com/input-output-hk/rust-cardano.git", branch = "master", optional = true }
+ed25519-bip32 = { version = "0.1", optional = true }
 
 # ethereum and bitcoin
 secp256k1_bip32 = { path = "../secp256k1_bip32", optional = true }

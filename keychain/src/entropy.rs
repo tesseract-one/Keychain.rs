@@ -1,5 +1,5 @@
-use rand::rngs::OsRng;
-use rand::RngCore;
+use rand_os::rand_core::RngCore;
+use rand_os::OsRng;
 use std::sync::Mutex;
 
 pub trait Entropy {
@@ -10,11 +10,9 @@ pub struct OsEntropy {
   random: Mutex<OsRng>
 }
 
-pub type OsEntropyError = rand::Error;
-
 impl OsEntropy {
-  pub fn new() -> Result<Self, OsEntropyError> {
-    OsRng::new().map(|rand| Self { random: Mutex::new(rand) })
+  pub fn new() -> Self {
+    Self { random: Mutex::new(OsRng) }
   }
 }
 

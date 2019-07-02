@@ -9,10 +9,11 @@ build = "build.rs"
 
 [dependencies]
 tesseract-keychain = { path = "../keychain", default-features = false }
+enum-primitive-derive = "0.1"
 num-traits = "0.2"
 
 [build-dependencies]
-cbindgen = "0.8"
+cbindgen = "0.9"
 
 [lib]
 name = "rust_keychain"

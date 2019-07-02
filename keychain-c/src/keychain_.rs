@@ -29,19 +29,6 @@ impl KeychainPtr {
   }
 }
 
-#[repr(C)]
-#[derive(Copy, Clone)]
-pub struct NewKeychainData {
-  data: DataPtr,
-  keychain: KeychainPtr
-}
-
-impl NewKeychainData {
-  pub fn new(keychain: RKeychain, data: &[u8]) -> Self {
-    Self { data: DataPtr::from(data), keychain: KeychainPtr::new(keychain) }
-  }
-}
-
 #[no_mangle]
 pub unsafe extern "C" fn keychain_networks(
   keychain: &KeychainPtr, networks: &mut NetworksPtr, error: &mut ErrorPtr

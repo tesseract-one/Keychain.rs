@@ -18,14 +18,16 @@ pub enum ErrorType {
   Panic = -1,
   WrongPassword = 0,
   NotEnoughData = 1,
-  CantCalculateSeedSize = 2,
-  DataError = 3,
-  EntropyGeneratorError = 4,
+  SeedIsNotSaved = 2,
+  CantCalculateSeedSize = 3,
+  DataError = 4,
   InvalidSeedSize = 5,
   KeyDoesNotExist = 6,
-  KeyError = 7,
-  KeyPathError = 8,
-  MnemonicError = 9
+  KeyAlreadyExist = 7,
+  NetworkIsNotSupported = 8,
+  KeyError = 9,
+  KeyPathError = 10,
+  MnemonicError = 11
 }
 
 #[repr(C)]
@@ -53,11 +55,13 @@ impl ErrorPtr {
     match err {
       &RError::WrongPassword => ErrorType::WrongPassword,
       &RError::NotEnoughData => ErrorType::NotEnoughData,
+      &RError::SeedIsNotSaved => ErrorType::SeedIsNotSaved,
       &RError::CantCalculateSeedSize(_, _) => ErrorType::CantCalculateSeedSize,
       &RError::DataError(_) => ErrorType::DataError,
-      &RError::EntropyGeneratorError(_) => ErrorType::EntropyGeneratorError,
       &RError::InvalidSeedSize(_) => ErrorType::InvalidSeedSize,
       &RError::KeyDoesNotExist(_) => ErrorType::KeyDoesNotExist,
+      &RError::KeyAlreadyExist(_) => ErrorType::KeyAlreadyExist,
+      &RError::NetworkIsNotSupported(_) => ErrorType::NetworkIsNotSupported,
       &RError::KeyError(_, _) => ErrorType::KeyError,
       &RError::KeyPathError(_) => ErrorType::KeyPathError,
       &RError::MnemonicError(_) => ErrorType::MnemonicError

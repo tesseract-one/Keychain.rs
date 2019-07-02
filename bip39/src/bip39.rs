@@ -13,12 +13,14 @@
 //!
 //! ```
 //! extern crate bip39;
-//! extern crate rand;
+//! extern crate rand_os;
 //!
 //! use bip39::*;
+//! use rand_os::OsRng;
+//! use rand_os::rand_core::RngCore;
 //!
 //! // first, you need to generate the original entropy
-//! let entropy = Entropy::generate(Type::Type18Words, rand::random);
+//! let entropy = Entropy::generate(Type::Type18Words, |bytes| OsRng.fill_bytes(bytes));
 //!
 //! // human readable mnemonics (in English) to retrieve the original entropy
 //! // and eventually recover a HDWallet.
@@ -151,22 +153,26 @@ impl Entropy {
   /// # Example
   ///
   /// ```
-  /// extern crate rand;
-  /// # extern crate bip39;
-  /// # use bip39::*;
+  /// extern crate rand_os;
+  /// extern crate bip39;
   ///
-  /// let entropy = Entropy::generate(Type::Type15Words, rand::random);
+  /// use rand_os::OsRng;
+  /// use rand_os::rand_core::RngCore;
+  ///
+  /// use bip39::*;
+  ///
+  /// let entropy = Entropy::generate(Type::Type15Words, |bytes| OsRng.fill_bytes(bytes));
   /// ```
   ///
   pub fn generate<G>(t: Type, gen: G) -> Self
   where
-    G: Fn() -> u8
+    G: Fn(&mut [u8]) -> ()
   {
     let bytes = [0u8; 32];
     let mut entropy = Self::new(t, &bytes[..]);
-    for e in entropy.as_mut().iter_mut() {
-      *e = gen();
-    }
+
+    gen(entropy.as_mut());
+
     entropy
   }
 
@@ -236,11 +242,15 @@ impl Entropy {
   /// # Example
   ///
   /// ```
-  /// # extern crate rand;
-  /// # extern crate bip39;
-  /// # use bip39::*;
+  /// extern crate rand_os;
+  /// extern crate bip39;
   ///
-  /// let entropy = Entropy::generate(Type::Type15Words, rand::random);
+  /// use rand_os::OsRng;
+  /// use rand_os::rand_core::RngCore;
+  ///
+  /// use bip39::*;
+  ///
+  /// let entropy = Entropy::generate(Type::Type15Words, |bytes| OsRng.fill_bytes(bytes));
   ///
   /// let checksum = entropy.checksum() & 0b0001_1111;
   /// ```
@@ -970,7 +980,8 @@ pub mod dictionary {
 #[cfg(test)]
 mod test {
   use super::*;
-  use rand::random;
+  use rand_os::rand_core::RngCore;
+  use rand_os::OsRng;
 
   extern crate unicode_normalization;
   use self::unicode_normalization::UnicodeNormalization;
@@ -1010,7 +1021,7 @@ mod test {
 
   #[test]
   fn from_mnemonic_to_mnemonic() {
-    let entropy = Entropy::generate(Type::Type12Words, random);
+    let entropy = Entropy::generate(Type::Type12Words, |bytes| OsRng.fill_bytes(bytes));
     let mnemonics = entropy.to_mnemonics();
     let entropy2 = Entropy::from_mnemonics(&mnemonics).unwrap();
     assert_eq!(entropy, entropy2);
