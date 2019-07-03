@@ -4,8 +4,7 @@ use std::fmt;
 
 pub const SEED_SIZE: usize = bip39::SEED_SIZE;
 
-#[derive(Primitive, Debug, Copy, Clone, Hash, Eq, PartialEq, Serialize_repr, Deserialize_repr)]
-#[repr(u16)]
+#[derive(Primitive, Debug, Copy, Clone, Hash, Eq, PartialEq, Serialize, Deserialize)]
 pub enum Language {
   English = 0,
   French = 1,
