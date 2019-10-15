@@ -32,8 +32,8 @@ impl IKeyPath for KeyPath {
   }
 }
 
-impl From<&IKeyPath> for KeyPath {
-  fn from(path: &IKeyPath) -> Self {
+impl From<&dyn IKeyPath> for KeyPath {
+  fn from(path: &dyn IKeyPath) -> Self {
     Self {
       purpose: path.purpose(),
       coin: path.coin(),
@@ -50,7 +50,7 @@ pub unsafe extern "C" fn keypath_from_string(
 ) -> bool {
   handle_exception_result(|| {
     let path = CStr::from_ptr(string as *const c_char).to_str().unwrap();
-    GenericKeyPath::from(path).map_err(|err| err.into()).map(|path| (&path as &IKeyPath).into())
+    GenericKeyPath::from(path).map_err(|err| err.into()).map(|path| (&path as &dyn IKeyPath).into())
   })
   .response(key_path, error)
 }

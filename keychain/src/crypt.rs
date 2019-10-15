@@ -41,7 +41,7 @@ impl std::fmt::Display for DecryptError {
 
 impl error::Error for DecryptError {}
 
-pub fn encrypt(data: &[u8], password: &str, entropy: &Entropy) -> Vec<u8> {
+pub fn encrypt(data: &[u8], password: &str, entropy: &dyn Entropy) -> Vec<u8> {
   use self::password_encryption_parameter::*;
   let mut salt: [u8; SALT_SIZE] = [0; SALT_SIZE];
   let mut nonce: [u8; NONCE_SIZE] = [0; NONCE_SIZE];

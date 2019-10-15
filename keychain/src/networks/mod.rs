@@ -9,8 +9,8 @@ pub mod ethereum;
 
 use super::key_factory::KeyFactory;
 
-pub fn all_networks<'a>() -> Vec<Box<KeyFactory>> {
-  let mut networks: Vec<Box<KeyFactory>> = Vec::new();
+pub fn all_networks<'a>() -> Vec<Box<dyn KeyFactory>> {
+  let mut networks: Vec<Box<dyn KeyFactory>> = Vec::new();
   #[cfg(feature = "cardano")]
   {
     networks.push(cardano::KeyFactory::boxed());

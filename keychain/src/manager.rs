@@ -12,8 +12,8 @@ use network::Network;
 use networks::all_networks;
 
 pub struct KeychainManager {
-  factories: HashMap<Network, Box<KeyFactory>>,
-  random: Box<Entropy>,
+  factories: HashMap<Network, Box<dyn KeyFactory>>,
+  random: Box<dyn Entropy>,
   seed_size: usize
 }
 
@@ -23,7 +23,7 @@ impl KeychainManager {
   }
 
   pub fn with_networks(networks: &[Network]) -> Result<Self, Error> {
-    let filtered: Vec<Box<KeyFactory>> = all_networks()
+    let filtered: Vec<Box<dyn KeyFactory>> = all_networks()
       .into_iter()
       .filter(|network| {
         let ntype = network.network();
@@ -42,7 +42,7 @@ impl KeychainManager {
     self.factories.contains_key(nt)
   }
 
-  pub fn get_key_factory<'a>(&'a self, nt: &Network) -> Option<&'a KeyFactory> {
+  pub fn get_key_factory<'a>(&'a self, nt: &Network) -> Option<&'a dyn KeyFactory> {
     self.factories.get(nt).map(|n| n.as_ref())
   }
 
@@ -67,7 +67,7 @@ impl KeychainManager {
     let v2 = Self::keychain_data_from_bytes(data, password)?;
     let keys = v2.keys.into_iter().fold(
       Ok(Vec::new()),
-      |res: Result<Vec<Box<Key>>, Error>, (network, key)| {
+      |res: Result<Vec<Box<dyn Key>>, Error>, (network, key)| {
         let mut vec = res?;
         match self.factories.get(&network) {
           None => Ok(vec),
@@ -137,15 +137,15 @@ impl KeychainManager {
 
 // Private methods
 impl KeychainManager {
-  fn with_factory_objs(factories: Vec<Box<KeyFactory>>) -> Result<Self, Error> {
+  fn with_factory_objs(factories: Vec<Box<dyn KeyFactory>>) -> Result<Self, Error> {
     let seed_size = Self::calculate_seed_size(&factories)?;
     let random = OsEntropy::new();
-    let map: HashMap<Network, Box<KeyFactory>> =
+    let map: HashMap<Network, Box<dyn KeyFactory>> =
       factories.into_iter().map(|ft| (ft.network(), ft)).collect();
     Ok(Self { seed_size, random: Box::new(random), factories: map })
   }
 
-  fn calculate_seed_size(factories: &[Box<KeyFactory>]) -> Result<usize, Error> {
+  fn calculate_seed_size(factories: &[Box<dyn KeyFactory>]) -> Result<usize, Error> {
     let mut min = 0;
     let mut max = std::usize::MAX;
     for factory in factories.into_iter() {

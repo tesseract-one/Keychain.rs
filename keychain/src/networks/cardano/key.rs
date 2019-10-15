@@ -82,7 +82,7 @@ impl Key {
       .map(|xprv| Vec::from(xprv.as_ref()))
   }
 
-  fn derive_private(&self, path: &KeyPath) -> Result<XPrv, Error> {
+  fn derive_private(&self, path: &dyn KeyPath) -> Result<XPrv, Error> {
     if path.purpose() != BIP44_PURPOSE {
       return Err(KPError::InvalidPurpose(path.purpose(), BIP44_PURPOSE).into());
     }
@@ -113,18 +113,18 @@ impl IKey for Key {
     Network::CARDANO
   }
 
-  fn pub_key(&self, path: &KeyPath) -> Result<Vec<u8>, Error> {
+  fn pub_key(&self, path: &dyn KeyPath) -> Result<Vec<u8>, Error> {
     self.derive_private(path).map(|pk| Vec::from(pk.public().as_ref()))
   }
 
-  fn sign(&self, data: &[u8], path: &KeyPath) -> Result<Vec<u8>, Error> {
+  fn sign(&self, data: &[u8], path: &dyn KeyPath) -> Result<Vec<u8>, Error> {
     self.derive_private(path).map(|pk| {
       let signature: Signature<Vec<u8>> = pk.sign(data);
       Vec::from(signature.as_ref())
     })
   }
 
-  fn verify(&self, data: &[u8], signature: &[u8], path: &KeyPath) -> Result<bool, Error> {
+  fn verify(&self, data: &[u8], signature: &[u8], path: &dyn KeyPath) -> Result<bool, Error> {
     let mut sign: [u8; SIGNATURE_SIZE] = [0; SIGNATURE_SIZE];
     if signature.len() < SIGNATURE_SIZE {
       return Err(Error::InvalidSignatureSize(signature.len(), SIGNATURE_SIZE));

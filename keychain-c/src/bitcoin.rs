@@ -20,7 +20,7 @@ pub unsafe extern "C" fn keypath_bitcoin_new_bip44(
   handle_exception_result(|| {
     RKeyPath::bip44(testnet, account, change, address)
       .map_err(|err| err.into())
-      .map(|kp| (&kp as &IKeyPath).into())
+      .map(|kp| (&kp as &dyn IKeyPath).into())
   })
   .response(path, error)
 }
@@ -32,7 +32,7 @@ pub unsafe extern "C" fn keypath_bitcoin_new_bip49(
   handle_exception_result(|| {
     RKeyPath::bip49(testnet, account, change, address)
       .map_err(|err| err.into())
-      .map(|kp| (&kp as &IKeyPath).into())
+      .map(|kp| (&kp as &dyn IKeyPath).into())
   })
   .response(path, error)
 }
@@ -44,7 +44,7 @@ pub unsafe extern "C" fn keypath_bitcoin_new_bip84(
   handle_exception_result(|| {
     RKeyPath::bip84(testnet, account, change, address)
       .map_err(|err| err.into())
-      .map(|kp| (&kp as &IKeyPath).into())
+      .map(|kp| (&kp as &dyn IKeyPath).into())
   })
   .response(path, error)
 }

@@ -44,7 +44,7 @@ pub enum Error {
   WrongNumberOfWords(usize),
   UnsupportedWordFound(String),
   InvalidEntropySize(usize),
-  UnknownError(Box<std::error::Error>)
+  UnknownError(Box<dyn std::error::Error>)
 }
 
 impl fmt::Display for Error {
@@ -79,7 +79,7 @@ impl From<bip39::Error> for Error {
   }
 }
 
-pub fn generate_entropy(size: usize, entropy: &Entropy) -> Result<Vec<u8>, Error> {
+pub fn generate_entropy(size: usize, entropy: &dyn Entropy) -> Result<Vec<u8>, Error> {
   let bip_type = bip39::Type::from_entropy_size(size).map_err(|e| Error::from(e))?;
   let generated = bip39::Entropy::generate(bip_type, |bytes| entropy.fill_bytes(bytes));
   Ok(Vec::from(generated.as_ref()))

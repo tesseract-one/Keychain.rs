@@ -19,7 +19,7 @@ impl IKeyFactory for KeyFactory {
     SeedSize { min: 96, max: 256 }
   }
 
-  fn key_from_data(&self, data: &[u8]) -> Result<Box<IKey>, KeyError> {
+  fn key_from_data(&self, data: &[u8]) -> Result<Box<dyn IKey>, KeyError> {
     Key::from_data(data).map(|pk| pk.boxed())
   }
 

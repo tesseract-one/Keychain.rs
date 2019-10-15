@@ -26,7 +26,7 @@ pub trait KeyFactory {
 
   fn seed_size(&self) -> SeedSize;
 
-  fn key_from_data(&self, data: &[u8]) -> Result<Box<Key>, KeyError>;
+  fn key_from_data(&self, data: &[u8]) -> Result<Box<dyn Key>, KeyError>;
 
   fn key_data_from_seed(&self, seed: &[u8]) -> Result<Vec<u8>, KeyError>;
 

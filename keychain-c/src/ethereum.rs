@@ -18,7 +18,7 @@ pub unsafe extern "C" fn keypath_ethereum_new(
   account: u32, path: &mut KeyPath, error: &mut ErrorPtr
 ) -> bool {
   handle_exception_result(|| {
-    RKeyPath::new(account).map_err(|err| err.into()).map(|kp| (&kp as &IKeyPath).into())
+    RKeyPath::new(account).map_err(|err| err.into()).map(|kp| (&kp as &dyn IKeyPath).into())
   })
   .response(path, error)
 }
@@ -28,7 +28,7 @@ pub unsafe extern "C" fn keypath_ethereum_new_metamask(
   account: u32, path: &mut KeyPath, error: &mut ErrorPtr
 ) -> bool {
   handle_exception_result(|| {
-    RKeyPath::new_metamask(account).map_err(|err| err.into()).map(|kp| (&kp as &IKeyPath).into())
+    RKeyPath::new_metamask(account).map_err(|err| err.into()).map(|kp| (&kp as &dyn IKeyPath).into())
   })
   .response(path, error)
 }

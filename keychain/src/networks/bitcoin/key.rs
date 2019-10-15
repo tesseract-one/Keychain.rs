@@ -21,7 +21,7 @@ impl Key {
     Ok(xprv.serialize())
   }
 
-  fn derive_private(&self, path: &KeyPath) -> Result<XPrv, Error> {
+  fn derive_private(&self, path: &dyn KeyPath) -> Result<XPrv, Error> {
     if path.coin() != COIN_TYPE {
       return Err(KPError::InvalidCoin(path.coin(), COIN_TYPE).into());
     }
@@ -50,15 +50,15 @@ impl IKey for Key {
     Network::BITCOIN
   }
 
-  fn pub_key(&self, path: &KeyPath) -> Result<Vec<u8>, Error> {
+  fn pub_key(&self, path: &dyn KeyPath) -> Result<Vec<u8>, Error> {
     self.derive_private(path).map(|pk| pk.public().serialize())
   }
 
-  fn sign(&self, data: &[u8], path: &KeyPath) -> Result<Vec<u8>, Error> {
+  fn sign(&self, data: &[u8], path: &dyn KeyPath) -> Result<Vec<u8>, Error> {
     self.derive_private(path)?.sign(data).map_err(|err| Error::from_secp_sign_error(err))
   }
 
-  fn verify(&self, data: &[u8], signature: &[u8], path: &KeyPath) -> Result<bool, Error> {
+  fn verify(&self, data: &[u8], signature: &[u8], path: &dyn KeyPath) -> Result<bool, Error> {
     self.derive_private(path)?.public().verify(data, signature).map_err(|err| err.into())
   }
 }

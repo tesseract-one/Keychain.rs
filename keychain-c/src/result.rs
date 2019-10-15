@@ -39,7 +39,7 @@ pub struct ErrorPtr {
 
 impl Ptr<str> for ErrorPtr {
   unsafe fn as_ref(&self) -> &str {
-    (&self.message as &Ptr<str>).as_ref()
+    (&self.message as &dyn Ptr<str>).as_ref()
   }
 
   unsafe fn free(&mut self) {
