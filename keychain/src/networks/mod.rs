@@ -13,15 +13,15 @@ pub fn all_networks<'a>() -> Vec<Box<dyn KeyFactory>> {
   let mut networks: Vec<Box<dyn KeyFactory>> = Vec::new();
   #[cfg(feature = "cardano")]
   {
-    networks.push(cardano::KeyFactory::boxed());
+    networks.push(cardano::KeyFactory::new().boxed());
   }
   #[cfg(feature = "ethereum")]
   {
-    networks.push(ethereum::KeyFactory::boxed());
+    networks.push(ethereum::KeyFactory::new().boxed());
   }
   #[cfg(feature = "bitcoin")]
   {
-    networks.push(bitcoin::KeyFactory::boxed());
+    networks.push(bitcoin::KeyFactory::new().boxed());
   }
   networks
 }

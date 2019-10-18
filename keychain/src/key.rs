@@ -73,9 +73,9 @@ pub trait Key {
 
   fn verify(&self, data: &[u8], signature: &[u8], path: &dyn KeyPath) -> Result<bool, Error>;
 
-  fn boxed(self) -> Box<dyn Key>
+  fn boxed(self) -> Box<Self>
   where
-    Self: Sized + 'static
+    Self: Sized
   {
     Box::new(self)
   }

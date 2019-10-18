@@ -6,11 +6,13 @@ use network::Network;
 
 pub struct KeyFactory;
 
-impl IKeyFactory for KeyFactory {
-  fn new() -> Self {
+impl KeyFactory {
+  pub fn new() -> Self {
     Self {}
   }
+}
 
+impl IKeyFactory for KeyFactory {
   fn network(&self) -> Network {
     Network::ETHEREUM
   }
@@ -20,7 +22,7 @@ impl IKeyFactory for KeyFactory {
   }
 
   fn key_from_data(&self, data: &[u8]) -> Result<Box<dyn IKey>, KeyError> {
-    Key::from_data(data).map(|pk| pk.boxed())
+    Key::from_data(data).map(|pk| -> Box<dyn IKey> { pk.boxed() })
   }
 
   fn key_data_from_seed(&self, seed: &[u8]) -> Result<Vec<u8>, KeyError> {
