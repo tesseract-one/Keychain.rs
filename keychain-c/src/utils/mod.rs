@@ -1,5 +1,5 @@
-pub mod panic;
-pub mod result;
 pub mod data;
-pub mod string;
+pub mod panic;
 pub mod ptr;
+pub mod result;
+pub mod string;

@@ -1,12 +1,12 @@
+use error::ErrorPtr;
 use key_path::KeyPath;
 use keychain::Keychain as RKeychain;
 use network::{Network, NetworksPtr};
-use utils::panic::{handle_exception, handle_exception_result};
-use utils::result::CResult;
-use utils::data::DataPtr;
-use utils::ptr::Ptr;
-use error::ErrorPtr;
 use std::ffi::c_void;
+use utils::data::DataPtr;
+use utils::panic::{handle_exception, handle_exception_result};
+use utils::ptr::Ptr;
+use utils::result::CResult;
 
 #[repr(C)]
 #[derive(Copy, Clone)]

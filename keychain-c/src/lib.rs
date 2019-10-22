@@ -4,18 +4,18 @@ extern crate keychain;
 extern crate enum_primitive_derive;
 extern crate num_traits;
 
+mod error;
 mod key_path;
 mod keychain_c;
 mod manager;
 mod network;
 mod utils;
-mod error;
 
+pub use error::*;
 pub use key_path::*;
 pub use keychain_c::*;
 pub use manager::*;
 pub use network::*;
-pub use error::*;
 
 #[cfg(feature = "ethereum")]
 mod ethereum;

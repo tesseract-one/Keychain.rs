@@ -1,9 +1,9 @@
+use error::ErrorPtr;
 use keychain::{GenericKeyPath, KeyPath as IKeyPath};
 use utils::panic::handle_exception_result;
+use utils::ptr::Ptr;
 use utils::result::CResult;
 use utils::string::CharPtr;
-use utils::ptr::Ptr;
-use error::ErrorPtr;
 
 #[repr(C)]
 #[derive(Copy, Clone)]

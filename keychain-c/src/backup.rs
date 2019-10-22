@@ -1,12 +1,12 @@
+use error::ErrorPtr;
 use keychain::Network as RNetwork;
 use manager::{KeychainManagerPtr, Language};
 use network::Network;
+use utils::data::DataPtr;
 use utils::panic::handle_exception_result;
+use utils::ptr::Ptr;
 use utils::result::CResult;
 use utils::string::{CharPtr, ToCString};
-use utils::data::DataPtr;
-use utils::ptr::Ptr;
-use error::ErrorPtr;
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -87,7 +87,8 @@ pub unsafe extern "C" fn keychain_manager_get_keys_data(
 ) -> bool {
   handle_exception_result(|| {
     let data_slice = std::slice::from_raw_parts(encrypted, encrypted_len);
-    manager.rust_ref()
+    manager
+      .rust_ref()
       .get_keys_data(data_slice, password.rust_ref())
       .map(|backup| KeyBackupPtr::from(backup))
   })

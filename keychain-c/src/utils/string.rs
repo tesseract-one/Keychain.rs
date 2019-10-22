@@ -1,6 +1,6 @@
+use super::ptr::Ptr;
 use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
-use super::ptr::Ptr;
 
 pub type CharPtr = *const c_char;
 

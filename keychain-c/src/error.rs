@@ -1,6 +1,6 @@
 use keychain::Error as RError;
-use utils::string::{CharPtr, ToCString};
 use utils::ptr::Ptr;
+use utils::string::{CharPtr, ToCString};
 
 #[repr(C)]
 #[derive(Copy, Clone, Eq, PartialEq)]

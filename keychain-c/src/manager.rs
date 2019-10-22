@@ -1,14 +1,14 @@
+use error::ErrorPtr;
 use keychain::{KeychainManager as RKeychainManager, Language as RLanguage};
 use keychain_c::KeychainPtr;
 use network::Network;
 use num_traits::FromPrimitive;
+use std::ffi::c_void;
+use utils::data::DataPtr;
 use utils::panic::{handle_exception, handle_exception_result};
+use utils::ptr::Ptr;
 use utils::result::CResult;
 use utils::string::{CharPtr, ToCString};
-use utils::data::DataPtr;
-use utils::ptr::Ptr;
-use error::ErrorPtr;
-use std::ffi::c_void;
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -93,7 +93,8 @@ pub unsafe extern "C" fn keychain_manager_keychain_data_from_seed(
 ) -> bool {
   handle_exception_result(|| {
     let seed_slice = std::slice::from_raw_parts(seed, seed_len);
-    manager.rust_ref()
+    manager
+      .rust_ref()
       .keychain_data_from_seed(seed_slice, password.rust_ref())
       .map(|data| DataPtr::from(data))
   })
@@ -121,7 +122,8 @@ pub unsafe extern "C" fn keychain_manager_keychain_from_data(
 ) -> bool {
   handle_exception_result(|| {
     let data_slice = std::slice::from_raw_parts(data, data_len);
-    manager.rust_ref()
+    manager
+      .rust_ref()
       .keychain_from_data(data_slice, password.rust_ref())
       .map(|keychain| KeychainPtr::new(keychain))
   })
@@ -135,7 +137,8 @@ pub unsafe extern "C" fn keychain_manager_add_network(
 ) -> bool {
   handle_exception_result(|| {
     let data_slice = std::slice::from_raw_parts(data, data_len);
-    manager.rust_ref()
+    manager
+      .rust_ref()
       .add_network(data_slice, password.rust_ref(), network.into())
       .map(|data| DataPtr::from(data))
   })
@@ -149,7 +152,8 @@ pub unsafe extern "C" fn keychain_manager_change_password(
 ) -> bool {
   handle_exception_result(|| {
     let data_slice = std::slice::from_raw_parts(data, data_len);
-    manager.rust_ref()
+    manager
+      .rust_ref()
       .change_password(data_slice, old_password.rust_ref(), new_password.rust_ref())
       .map(|data| DataPtr::from(data))
   })

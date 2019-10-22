@@ -43,7 +43,9 @@ impl Keychain {
 
 impl Keychain {
   fn _pk<'a>(&'a self, network: &Network) -> Result<&'a dyn Key, Error> {
-    self.keys.get(network)
+    self
+      .keys
+      .get(network)
       .map(|key| key.as_ref())
       .ok_or_else(|| Error::KeyDoesNotExist(network.clone()))
   }

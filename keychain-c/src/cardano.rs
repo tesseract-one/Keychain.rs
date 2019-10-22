@@ -1,3 +1,4 @@
+use error::ErrorPtr;
 use key_path::KeyPath;
 use keychain::networks::cardano::KeyPath as RKeyPath;
 use keychain::KeyPath as IKeyPath;
@@ -5,7 +6,6 @@ use keychain::Network as RNetwork;
 use network::Network;
 use utils::panic::handle_exception_result;
 use utils::result::CResult;
-use error::ErrorPtr;
 
 static CARDANO: Network = Network(RNetwork::CARDANO.0);
 

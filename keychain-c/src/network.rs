@@ -28,7 +28,7 @@ impl Ptr<[Network]> for NetworksPtr {
   unsafe fn rust_ref(&self) -> &[Network] {
     std::slice::from_raw_parts(self.ptr, self.count)
   }
-  
+
   unsafe fn free(&mut self) {
     if self.ptr.is_null() {
       return;

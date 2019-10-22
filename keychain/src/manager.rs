@@ -65,9 +65,11 @@ impl KeychainManager {
 
   pub fn keychain_from_data(&self, data: &[u8], password: &str) -> Result<Keychain, Error> {
     let v2 = Self::keychain_data_from_bytes(data, password)?;
-    let keys_result: Result<Vec<Box<dyn Key>>, Error> = v2.keys.into_iter()
+    let keys_result: Result<Vec<Box<dyn Key>>, Error> = v2
+      .keys
+      .into_iter()
       .filter_map(|(network, key)| {
-        self.factories.get(&network).map(|factory| { 
+        self.factories.get(&network).map(|factory| {
           factory.key_from_data(&key).map_err(|err| Error::from_key_error(&network, err))
         })
       })
@@ -123,8 +125,7 @@ impl KeychainManager {
   pub fn get_keys_data(
     &self, encrypted: &[u8], password: &str
   ) -> Result<Vec<(Network, Vec<u8>)>, Error> {
-    Self::keychain_data_from_bytes(encrypted, password)
-      .map(|data| data.keys.into_iter().collect())
+    Self::keychain_data_from_bytes(encrypted, password).map(|data| data.keys.into_iter().collect())
   }
 }
 
@@ -139,33 +140,35 @@ impl KeychainManager {
   }
 
   fn calculate_seed_size(factories: &[Box<dyn KeyFactory>]) -> Result<usize, Error> {
-    let (min, max) = factories.into_iter()
-      .fold((0, std::usize::MAX), |(min, max), factory| {
-        let ssize = factory.seed_size();
-        (min.max(ssize.min), max.min(ssize.max))
-      });
+    let (min, max) = factories.into_iter().fold((0, std::usize::MAX), |(min, max), factory| {
+      let ssize = factory.seed_size();
+      (min.max(ssize.min), max.min(ssize.max))
+    });
 
     match min {
       0 => Err(Error::CantCalculateSeedSize(min, max)),
       m if m >= max => Err(Error::CantCalculateSeedSize(min, max)),
-      _ => Ok(min),
+      _ => Ok(min)
     }
   }
 
   fn seed_from_data(
     &self, seed: Option<&[u8]>, mnemonic: Option<&str>, lang: Option<Language>
   ) -> Result<Vec<u8>, Error> {
-    seed.map_or_else(|| {
-      let mnem = mnemonic.ok_or(Error::SeedIsNotSaved)?;
-      let lang = lang.ok_or(Error::SeedIsNotSaved)?;
-      seed_from_mnemonic(mnem, "", self.seed_size, lang).map_err(|err| Error::from(err))
-    }, |seed| {
-      if seed.len() == SEED_SIZE {
-        Ok(Vec::from(seed))
-      } else {
-        Err(Error::InvalidSeedSize(seed.len()))
+    seed.map_or_else(
+      || {
+        let mnem = mnemonic.ok_or(Error::SeedIsNotSaved)?;
+        let lang = lang.ok_or(Error::SeedIsNotSaved)?;
+        seed_from_mnemonic(mnem, "", self.seed_size, lang).map_err(|err| Error::from(err))
+      },
+      |seed| {
+        if seed.len() == SEED_SIZE {
+          Ok(Vec::from(seed))
+        } else {
+          Err(Error::InvalidSeedSize(seed.len()))
+        }
       }
-    })
+    )
   }
 
   fn new_keychain_data(
@@ -173,12 +176,17 @@ impl KeychainManager {
   ) -> Result<Vec<u8>, Error> {
     let calculated_seed = self.seed_from_data(seed, mnemonic, lang)?;
 
-    let pkeys: Result<HashMap<Network, Vec<u8>>, Error> = self.factories.values().into_iter()
+    let pkeys: Result<HashMap<Network, Vec<u8>>, Error> = self
+      .factories
+      .values()
+      .into_iter()
       .map(|fact| {
-        fact.key_data_from_seed(&calculated_seed)
+        fact
+          .key_data_from_seed(&calculated_seed)
           .map(|data| (fact.network(), data))
           .map_err(|err| Error::from_key_error(&fact.network(), err))
-      }).collect();
+      })
+      .collect();
 
     let data = WalletDataV2 {
       seed: seed.map(|s| Vec::from(s)),
