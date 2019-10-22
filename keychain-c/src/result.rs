@@ -3,12 +3,7 @@ use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
 
 pub trait Ptr<T: ?Sized> {
-  unsafe fn as_ref(&self) -> &T;
-  unsafe fn free(&mut self);
-}
-
-pub trait ArrayPtr<T> {
-  unsafe fn as_ref(&self) -> &[T];
+  unsafe fn rust_ref(&self) -> &T;
   unsafe fn free(&mut self);
 }
 
@@ -38,8 +33,8 @@ pub struct ErrorPtr {
 }
 
 impl Ptr<str> for ErrorPtr {
-  unsafe fn as_ref(&self) -> &str {
-    (&self.message as &dyn Ptr<str>).as_ref()
+  unsafe fn rust_ref(&self) -> &str {
+    (&self.message as &dyn Ptr<str>).rust_ref()
   }
 
   unsafe fn free(&mut self) {
@@ -108,8 +103,8 @@ pub struct DataPtr {
   len: usize
 }
 
-impl ArrayPtr<u8> for DataPtr {
-  unsafe fn as_ref(&self) -> &[u8] {
+impl Ptr<[u8]> for DataPtr {
+  unsafe fn rust_ref(&self) -> &[u8] {
     std::slice::from_raw_parts(self.ptr, self.len)
   }
 
@@ -146,7 +141,7 @@ pub unsafe extern "C" fn delete_data(data: &mut DataPtr) {
 pub type CharPtr = *const c_char;
 
 impl Ptr<str> for CharPtr {
-  unsafe fn as_ref(&self) -> &str {
+  unsafe fn rust_ref(&self) -> &str {
     CStr::from_ptr(*self).to_str().unwrap()
   }
 
