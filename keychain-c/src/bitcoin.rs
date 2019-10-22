@@ -3,8 +3,9 @@ use keychain::networks::bitcoin::KeyPath as RKeyPath;
 use keychain::KeyPath as IKeyPath;
 use keychain::Network as RNetwork;
 use network::Network;
-use panic::handle_exception_result;
-use result::{CResult, ErrorPtr};
+use utils::panic::handle_exception_result;
+use utils::result::CResult;
+use error::ErrorPtr;
 
 static BITCOIN: Network = Network(RNetwork::BITCOIN.0);
 

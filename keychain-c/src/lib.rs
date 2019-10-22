@@ -5,17 +5,17 @@ extern crate enum_primitive_derive;
 extern crate num_traits;
 
 mod key_path;
-mod keychain_;
+mod keychain_c;
 mod manager;
 mod network;
-mod panic;
-mod result;
+mod utils;
+mod error;
 
 pub use key_path::*;
-pub use keychain_::*;
+pub use keychain_c::*;
 pub use manager::*;
 pub use network::*;
-pub use result::*;
+pub use error::*;
 
 #[cfg(feature = "ethereum")]
 mod ethereum;
@@ -39,5 +39,5 @@ pub use backup::*;
 
 #[no_mangle]
 pub unsafe extern "C" fn keychain_init_library() {
-  panic::hide_exceptions();
+  utils::panic::hide_exceptions();
 }

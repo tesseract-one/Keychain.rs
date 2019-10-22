@@ -1,5 +1,5 @@
 use keychain::Error;
-use result::ErrorPtr;
+use error::ErrorPtr;
 use std::panic;
 
 pub fn handle_exception<F: FnOnce() -> R + panic::UnwindSafe, R>(func: F) -> Result<R, ErrorPtr> {

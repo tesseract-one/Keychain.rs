@@ -1,9 +1,13 @@
 use keychain::{KeychainManager as RKeychainManager, Language as RLanguage};
-use keychain_::KeychainPtr;
+use keychain_c::KeychainPtr;
 use network::Network;
 use num_traits::FromPrimitive;
-use panic::{handle_exception, handle_exception_result};
-use result::{CResult, CharPtr, DataPtr, ErrorPtr, Ptr, ToCString};
+use utils::panic::{handle_exception, handle_exception_result};
+use utils::result::CResult;
+use utils::string::{CharPtr, ToCString};
+use utils::data::DataPtr;
+use utils::ptr::Ptr;
+use error::ErrorPtr;
 use std::ffi::c_void;
 
 #[repr(C)]

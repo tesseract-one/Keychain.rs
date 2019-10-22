@@ -3,8 +3,9 @@ use keychain::networks::ethereum::KeyPath as RKeyPath;
 use keychain::KeyPath as IKeyPath;
 use keychain::Network as RNetwork;
 use network::Network;
-use panic::handle_exception_result;
-use result::{CResult, ErrorPtr};
+use utils::panic::handle_exception_result;
+use utils::result::CResult;
+use error::ErrorPtr;
 
 static ETHEREUM: Network = Network(RNetwork::ETHEREUM.0);
 

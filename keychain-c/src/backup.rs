@@ -1,8 +1,12 @@
 use keychain::Network as RNetwork;
 use manager::{KeychainManagerPtr, Language};
 use network::Network;
-use panic::handle_exception_result;
-use result::{CResult, CharPtr, DataPtr, ErrorPtr, Ptr, ToCString};
+use utils::panic::handle_exception_result;
+use utils::result::CResult;
+use utils::string::{CharPtr, ToCString};
+use utils::data::DataPtr;
+use utils::ptr::Ptr;
+use error::ErrorPtr;
 
 #[repr(C)]
 #[derive(Copy, Clone)]
