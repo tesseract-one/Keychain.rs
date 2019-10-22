@@ -1,8 +1,9 @@
+use error::ErrorPtr;
 use keychain::{GenericKeyPath, KeyPath as IKeyPath};
-use panic::handle_exception_result;
-use result::{CResult, CharPtr, ErrorPtr};
-use std::ffi::CStr;
-use std::os::raw::c_char;
+use utils::panic::handle_exception_result;
+use utils::ptr::Ptr;
+use utils::result::CResult;
+use utils::string::CharPtr;
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -32,8 +33,8 @@ impl IKeyPath for KeyPath {
   }
 }
 
-impl From<&IKeyPath> for KeyPath {
-  fn from(path: &IKeyPath) -> Self {
+impl From<&dyn IKeyPath> for KeyPath {
+  fn from(path: &dyn IKeyPath) -> Self {
     Self {
       purpose: path.purpose(),
       coin: path.coin(),
@@ -49,8 +50,9 @@ pub unsafe extern "C" fn keypath_from_string(
   string: CharPtr, key_path: &mut KeyPath, error: &mut ErrorPtr
 ) -> bool {
   handle_exception_result(|| {
-    let path = CStr::from_ptr(string as *const c_char).to_str().unwrap();
-    GenericKeyPath::from(path).map_err(|err| err.into()).map(|path| (&path as &IKeyPath).into())
+    GenericKeyPath::from(string.rust_ref())
+      .map_err(|err| err.into())
+      .map(|path| (&path as &dyn IKeyPath).into())
   })
   .response(key_path, error)
 }

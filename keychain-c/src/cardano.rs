@@ -1,10 +1,11 @@
+use error::ErrorPtr;
 use key_path::KeyPath;
 use keychain::networks::cardano::KeyPath as RKeyPath;
 use keychain::KeyPath as IKeyPath;
 use keychain::Network as RNetwork;
 use network::Network;
-use panic::handle_exception_result;
-use result::{CResult, ErrorPtr};
+use utils::panic::handle_exception_result;
+use utils::result::CResult;
 
 static CARDANO: Network = Network(RNetwork::CARDANO.0);
 
@@ -20,7 +21,7 @@ pub unsafe extern "C" fn keypath_cardano_new(
   handle_exception_result(|| {
     RKeyPath::new(account, change, address)
       .map_err(|err| err.into())
-      .map(|kp| (&kp as &IKeyPath).into())
+      .map(|kp| (&kp as &dyn IKeyPath).into())
   })
   .response(path, error)
 }

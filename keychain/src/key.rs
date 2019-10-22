@@ -11,9 +11,9 @@ pub enum Error {
   InvalidKeyPath(KeyPathError),
   InvalidMnemonic(MnemonicError),
   InvalidKeySize(usize, usize),
-  InvalidKeyData(Box<std::error::Error>),
+  InvalidKeyData(Box<dyn std::error::Error>),
   InvalidSignatureSize(usize, usize),
-  SignError(Box<std::error::Error>)
+  SignError(Box<dyn std::error::Error>)
 }
 
 impl fmt::Display for Error {
@@ -67,15 +67,15 @@ impl std::error::Error for Error {}
 pub trait Key {
   fn network(&self) -> Network;
 
-  fn pub_key(&self, path: &KeyPath) -> Result<Vec<u8>, Error>;
+  fn pub_key(&self, path: &dyn KeyPath) -> Result<Vec<u8>, Error>;
 
-  fn sign(&self, data: &[u8], path: &KeyPath) -> Result<Vec<u8>, Error>;
+  fn sign(&self, data: &[u8], path: &dyn KeyPath) -> Result<Vec<u8>, Error>;
 
-  fn verify(&self, data: &[u8], signature: &[u8], path: &KeyPath) -> Result<bool, Error>;
+  fn verify(&self, data: &[u8], signature: &[u8], path: &dyn KeyPath) -> Result<bool, Error>;
 
-  fn boxed(self) -> Box<Key>
+  fn boxed(self) -> Box<Self>
   where
-    Self: Sized + 'static
+    Self: Sized
   {
     Box::new(self)
   }

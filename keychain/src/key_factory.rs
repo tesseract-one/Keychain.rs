@@ -18,22 +18,18 @@ impl SeedSize {
 }
 
 pub trait KeyFactory {
-  fn new() -> Self
-  where
-    Self: Sized;
-
   fn network(&self) -> Network;
 
   fn seed_size(&self) -> SeedSize;
 
-  fn key_from_data(&self, data: &[u8]) -> Result<Box<Key>, KeyError>;
+  fn key_from_data(&self, data: &[u8]) -> Result<Box<dyn Key>, KeyError>;
 
   fn key_data_from_seed(&self, seed: &[u8]) -> Result<Vec<u8>, KeyError>;
 
-  fn boxed() -> Box<Self>
+  fn boxed(self) -> Box<Self>
   where
     Self: Sized
   {
-    Box::new(Self::new())
+    Box::new(self)
   }
 }

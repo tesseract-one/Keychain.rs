@@ -1,10 +1,12 @@
+use error::ErrorPtr;
 use keychain::Network as RNetwork;
 use manager::{KeychainManagerPtr, Language};
 use network::Network;
-use panic::handle_exception_result;
-use result::{ArrayPtr, CResult, CharPtr, DataPtr, ErrorPtr, Ptr, ToCString};
-use std::ffi::CStr;
-use std::os::raw::c_char;
+use utils::data::DataPtr;
+use utils::panic::handle_exception_result;
+use utils::ptr::Ptr;
+use utils::result::CResult;
+use utils::string::{CharPtr, ToCString};
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -20,8 +22,8 @@ pub struct KeyBackupPtr {
   pub count: usize
 }
 
-impl ArrayPtr<KeyBackupElem> for KeyBackupPtr {
-  unsafe fn as_ref(&self) -> &[KeyBackupElem] {
+impl Ptr<[KeyBackupElem]> for KeyBackupPtr {
+  unsafe fn rust_ref(&self) -> &[KeyBackupElem] {
     std::slice::from_raw_parts(self.ptr, self.count)
   }
 
@@ -66,8 +68,8 @@ impl MnemonicInfoPtr {
 }
 
 impl Ptr<str> for MnemonicInfoPtr {
-  unsafe fn as_ref(&self) -> &str {
-    (&self.mnemonic as &Ptr<str>).as_ref()
+  unsafe fn rust_ref(&self) -> &str {
+    (&self.mnemonic as &dyn Ptr<str>).rust_ref()
   }
 
   unsafe fn free(&mut self) {
@@ -85,8 +87,10 @@ pub unsafe extern "C" fn keychain_manager_get_keys_data(
 ) -> bool {
   handle_exception_result(|| {
     let data_slice = std::slice::from_raw_parts(encrypted, encrypted_len);
-    let pwd = CStr::from_ptr(password as *const c_char).to_str().unwrap();
-    manager.as_ref().get_keys_data(data_slice, pwd).map(|backup| KeyBackupPtr::from(backup))
+    manager
+      .rust_ref()
+      .get_keys_data(data_slice, password.rust_ref())
+      .map(|backup| KeyBackupPtr::from(backup))
   })
   .response(data, error)
 }
@@ -98,11 +102,9 @@ pub unsafe extern "C" fn keychain_manager_retrieve_mnemonic(
 ) -> bool {
   handle_exception_result(|| {
     let data_slice = std::slice::from_raw_parts(data, data_len);
-    let pwd = CStr::from_ptr(password as *const c_char).to_str().unwrap();
-
     manager
-      .as_ref()
-      .retrieve_mnemonic(data_slice, pwd)
+      .rust_ref()
+      .retrieve_mnemonic(data_slice, password.rust_ref())
       .map(|(mnemonic, lang)| MnemonicInfoPtr::new(mnemonic, lang.into()))
   })
   .response(mnemonic, error)

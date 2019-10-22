@@ -12,8 +12,8 @@ use network::Network;
 use networks::all_networks;
 
 pub struct KeychainManager {
-  factories: HashMap<Network, Box<KeyFactory>>,
-  random: Box<Entropy>,
+  factories: HashMap<Network, Box<dyn KeyFactory>>,
+  random: Box<dyn Entropy>,
   seed_size: usize
 }
 
@@ -23,7 +23,7 @@ impl KeychainManager {
   }
 
   pub fn with_networks(networks: &[Network]) -> Result<Self, Error> {
-    let filtered: Vec<Box<KeyFactory>> = all_networks()
+    let filtered: Vec<Box<dyn KeyFactory>> = all_networks()
       .into_iter()
       .filter(|network| {
         let ntype = network.network();
@@ -42,7 +42,7 @@ impl KeychainManager {
     self.factories.contains_key(nt)
   }
 
-  pub fn get_key_factory<'a>(&'a self, nt: &Network) -> Option<&'a KeyFactory> {
+  pub fn get_key_factory<'a>(&'a self, nt: &Network) -> Option<&'a dyn KeyFactory> {
     self.factories.get(nt).map(|n| n.as_ref())
   }
 
@@ -65,29 +65,24 @@ impl KeychainManager {
 
   pub fn keychain_from_data(&self, data: &[u8], password: &str) -> Result<Keychain, Error> {
     let v2 = Self::keychain_data_from_bytes(data, password)?;
-    let keys = v2.keys.into_iter().fold(
-      Ok(Vec::new()),
-      |res: Result<Vec<Box<Key>>, Error>, (network, key)| {
-        let mut vec = res?;
-        match self.factories.get(&network) {
-          None => Ok(vec),
-          Some(factory) => {
-            let pk =
-              factory.key_from_data(&key).map_err(|err| Error::from_key_error(&network, err))?;
-            vec.push(pk);
-            Ok(vec)
-          }
-        }
-      }
-    )?;
-    Ok(Keychain::new(keys))
+    let keys_result: Result<Vec<Box<dyn Key>>, Error> = v2
+      .keys
+      .into_iter()
+      .filter_map(|(network, key)| {
+        self.factories.get(&network).map(|factory| {
+          factory.key_from_data(&key).map_err(|err| Error::from_key_error(&network, err))
+        })
+      })
+      .collect();
+    keys_result.map(|keys| Keychain::new(keys))
   }
 
   pub fn change_password(
     &self, encrypted: &[u8], old_password: &str, new_password: &str
   ) -> Result<Vec<u8>, Error> {
-    let decrypted = crypt::decrypt(encrypted, old_password).map_err(|err| Error::from(err))?;
-    Ok(crypt::encrypt(&decrypted, new_password, self.random.as_ref()))
+    crypt::decrypt(encrypted, old_password)
+      .map_err(|err| Error::from(err))
+      .map(|decrypted| crypt::encrypt(&decrypted, new_password, self.random.as_ref()))
   }
 
   pub fn add_network(
@@ -110,10 +105,10 @@ impl KeychainManager {
 
     data.keys.insert(network, key_data);
 
-    let bytes =
-      VersionedData::new(&data).and_then(|data| data.to_bytes()).map_err(|err| Error::from(err))?;
-
-    Ok(crypt::encrypt(&bytes, password, self.random.as_ref()))
+    VersionedData::new(&data)
+      .and_then(|data| data.to_bytes())
+      .map_err(|err| Error::from(err))
+      .map(|bytes| crypt::encrypt(&bytes, password, self.random.as_ref()))
   }
 
   #[cfg(feature = "backup")]
@@ -130,56 +125,50 @@ impl KeychainManager {
   pub fn get_keys_data(
     &self, encrypted: &[u8], password: &str
   ) -> Result<Vec<(Network, Vec<u8>)>, Error> {
-    let v2 = Self::keychain_data_from_bytes(encrypted, password)?;
-    Ok(v2.keys.into_iter().collect())
+    Self::keychain_data_from_bytes(encrypted, password).map(|data| data.keys.into_iter().collect())
   }
 }
 
 // Private methods
 impl KeychainManager {
-  fn with_factory_objs(factories: Vec<Box<KeyFactory>>) -> Result<Self, Error> {
+  fn with_factory_objs(factories: Vec<Box<dyn KeyFactory>>) -> Result<Self, Error> {
     let seed_size = Self::calculate_seed_size(&factories)?;
     let random = OsEntropy::new();
-    let map: HashMap<Network, Box<KeyFactory>> =
+    let map: HashMap<Network, Box<dyn KeyFactory>> =
       factories.into_iter().map(|ft| (ft.network(), ft)).collect();
     Ok(Self { seed_size, random: Box::new(random), factories: map })
   }
 
-  fn calculate_seed_size(factories: &[Box<KeyFactory>]) -> Result<usize, Error> {
-    let mut min = 0;
-    let mut max = std::usize::MAX;
-    for factory in factories.into_iter() {
+  fn calculate_seed_size(factories: &[Box<dyn KeyFactory>]) -> Result<usize, Error> {
+    let (min, max) = factories.into_iter().fold((0, std::usize::MAX), |(min, max), factory| {
       let ssize = factory.seed_size();
-      min = min.max(ssize.min);
-      max = max.min(ssize.max);
-    }
-    if min == 0 {
-      return Err(Error::CantCalculateSeedSize(min, max));
-    }
-    if max >= min {
-      Ok(min)
-    } else {
-      Err(Error::CantCalculateSeedSize(min, max))
+      (min.max(ssize.min), max.min(ssize.max))
+    });
+
+    match min {
+      0 => Err(Error::CantCalculateSeedSize(min, max)),
+      m if m >= max => Err(Error::CantCalculateSeedSize(min, max)),
+      _ => Ok(min)
     }
   }
 
   fn seed_from_data(
     &self, seed: Option<&[u8]>, mnemonic: Option<&str>, lang: Option<Language>
   ) -> Result<Vec<u8>, Error> {
-    match seed {
-      Some(seed) => {
+    seed.map_or_else(
+      || {
+        let mnem = mnemonic.ok_or(Error::SeedIsNotSaved)?;
+        let lang = lang.ok_or(Error::SeedIsNotSaved)?;
+        seed_from_mnemonic(mnem, "", self.seed_size, lang).map_err(|err| Error::from(err))
+      },
+      |seed| {
         if seed.len() == SEED_SIZE {
           Ok(Vec::from(seed))
         } else {
           Err(Error::InvalidSeedSize(seed.len()))
         }
       }
-      None => {
-        let mnem = mnemonic.ok_or(Error::SeedIsNotSaved)?;
-        let lang = lang.ok_or(Error::SeedIsNotSaved)?;
-        seed_from_mnemonic(mnem, "", self.seed_size, lang).map_err(|err| Error::from(err))
-      }
-    }
+    )
   }
 
   fn new_keychain_data(
@@ -187,29 +176,29 @@ impl KeychainManager {
   ) -> Result<Vec<u8>, Error> {
     let calculated_seed = self.seed_from_data(seed, mnemonic, lang)?;
 
-    let pkeys = self.factories.values().fold(
-      Ok(Vec::new()),
-      |res: Result<Vec<(Network, Vec<u8>)>, Error>, fact| {
-        let mut vec = res?;
-        let data = fact
+    let pkeys: Result<HashMap<Network, Vec<u8>>, Error> = self
+      .factories
+      .values()
+      .into_iter()
+      .map(|fact| {
+        fact
           .key_data_from_seed(&calculated_seed)
-          .map_err(|err| Error::from_key_error(&fact.network(), err))?;
-        vec.push((fact.network(), data));
-        Ok(vec)
-      }
-    )?;
+          .map(|data| (fact.network(), data))
+          .map_err(|err| Error::from_key_error(&fact.network(), err))
+      })
+      .collect();
 
     let data = WalletDataV2 {
       seed: seed.map(|s| Vec::from(s)),
       mnemonic: mnemonic.map(|m| m.to_owned()),
       dictionary: lang,
-      keys: pkeys.into_iter().collect()
+      keys: pkeys?
     };
 
-    let bytes =
-      VersionedData::new(&data).and_then(|data| data.to_bytes()).map_err(|err| Error::from(err))?;
-
-    Ok(crypt::encrypt(&bytes, password, self.random.as_ref()))
+    VersionedData::new(&data)
+      .and_then(|data| data.to_bytes())
+      .map(|bytes| crypt::encrypt(&bytes, password, self.random.as_ref()))
+      .map_err(|err| Error::from(err))
   }
 
   fn keychain_data_from_bytes(bytes: &[u8], password: &str) -> Result<WalletDataV2, Error> {

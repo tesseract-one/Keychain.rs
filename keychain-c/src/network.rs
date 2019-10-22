@@ -1,5 +1,5 @@
 use keychain::Network as RNetwork;
-use result::ArrayPtr;
+use utils::ptr::Ptr;
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -24,8 +24,8 @@ pub struct NetworksPtr {
   count: usize
 }
 
-impl ArrayPtr<Network> for NetworksPtr {
-  unsafe fn as_ref(&self) -> &[Network] {
+impl Ptr<[Network]> for NetworksPtr {
+  unsafe fn rust_ref(&self) -> &[Network] {
     std::slice::from_raw_parts(self.ptr, self.count)
   }
 
@@ -33,7 +33,7 @@ impl ArrayPtr<Network> for NetworksPtr {
     if self.ptr.is_null() {
       return;
     }
-    let _ = Vec::from_raw_parts(self.ptr as *mut Network, self.count, self.count);
+    let _ = Vec::from_raw_parts(self.ptr as *mut &[Network], self.count, self.count);
     self.ptr = std::ptr::null();
   }
 }
