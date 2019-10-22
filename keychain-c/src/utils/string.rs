@@ -16,9 +16,8 @@ impl Ptr<str> for CharPtr {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn delete_string(ptr: CharPtr) {
-  let mut mptr = ptr;
-  mptr.free();
+pub unsafe extern "C" fn delete_string(mut ptr: CharPtr) {
+  (&mut ptr).free();
 }
 
 pub trait ToCString {
