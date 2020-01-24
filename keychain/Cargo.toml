@@ -5,6 +5,7 @@ authors = ["Tesseract Systems, Inc. <info@tesseract.one>"]
 license = "Apache-2.0"
 description = "Tesseract Multi-Network Keychain Implementation"
 keywords = [ "Wallet", "Tesseract", "Cardano", "Ethereum", "Bitcoin" ]
+edition = "2018"
 
 [dependencies]
 rand_os = "0.2"
@@ -13,15 +14,15 @@ serde = "1.0"
 serde_derive = "1.0"
 serde_json = "1.0"
 serde_repr = "0.1"
-base64-serde = "0.3"
-base64 = "0.10"
+base64-serde = "0.4"
+base64 = "0.11"
 enum-primitive-derive = "0.1"
 num-traits = "0.2"
 
 bip39 = { path = "../bip39" }
 
 # cardano
-ed25519-bip32 = { version = "0.1", optional = true }
+ed25519-bip32 = { version = "0.3", optional = true }
 
 # ethereum and bitcoin
 secp256k1_bip32 = { path = "../secp256k1_bip32", optional = true }

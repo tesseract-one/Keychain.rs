@@ -1,4 +1,4 @@
-use error::ErrorPtr;
+use crate::error::ErrorPtr;
 use keychain::Error;
 use std::panic;
 

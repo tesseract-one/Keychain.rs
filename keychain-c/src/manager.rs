@@ -1,14 +1,14 @@
-use error::ErrorPtr;
+use crate::error::ErrorPtr;
 use keychain::{KeychainManager as RKeychainManager, Language as RLanguage};
-use keychain_c::KeychainPtr;
-use network::Network;
+use crate::keychain_c::KeychainPtr;
+use crate::network::Network;
 use num_traits::FromPrimitive;
 use std::ffi::c_void;
-use utils::data::DataPtr;
-use utils::panic::{handle_exception, handle_exception_result};
-use utils::ptr::Ptr;
-use utils::result::CResult;
-use utils::string::{CharPtr, ToCString};
+use crate::utils::data::DataPtr;
+use crate::utils::panic::{handle_exception, handle_exception_result};
+use crate::utils::ptr::Ptr;
+use crate::utils::result::CResult;
+use crate::utils::string::{CharPtr, ToCString};
 
 #[repr(C)]
 #[derive(Copy, Clone)]

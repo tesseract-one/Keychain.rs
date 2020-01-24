@@ -1,7 +1,7 @@
-use error::Error;
-use key::Key;
-use key_path::KeyPath;
-use network::Network;
+use crate::error::Error;
+use crate::key::Key;
+use crate::key_path::KeyPath;
+use crate::network::Network;
 use std::collections::HashMap;
 
 pub struct Keychain {

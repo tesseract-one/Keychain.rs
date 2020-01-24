@@ -54,7 +54,7 @@ use cryptoxide::hmac::Hmac;
 use cryptoxide::pbkdf2::pbkdf2;
 use cryptoxide::sha2::Sha512;
 use std::{error, fmt, ops::Deref, result, str};
-use util::{hex, securemem};
+use crate::util::{hex, securemem};
 
 /// Error regarding BIP39 operations
 #[derive(Debug, PartialEq, Eq)]
@@ -289,7 +289,7 @@ impl Entropy {
   /// the mnemonics have been correctly entered by the user.
   ///
   pub fn from_mnemonics(mnemonics: &Mnemonics) -> Result<Self> {
-    use util::bits::BitWriterBy11;
+    use crate::util::bits::BitWriterBy11;
     let t = mnemonics.get_type();
 
     let mut to_validate = BitWriterBy11::new();
@@ -326,7 +326,7 @@ impl Entropy {
   /// ```
   ///
   pub fn to_mnemonics(&self) -> Mnemonics {
-    use util::bits::BitReaderBy11;
+    use crate::util::bits::BitReaderBy11;
 
     let t = self.get_type();
     let mut combined = Vec::from(self.as_ref());

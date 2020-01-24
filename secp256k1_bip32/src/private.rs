@@ -144,7 +144,7 @@ impl XPrv {
 
     let message = Message::parse(&out);
 
-    let (signature, recovery) = sign(&message, &self.key).map_err(|e| KeyError::from(e))?;
+    let (signature, recovery) = sign(&message, &self.key);
 
     let rec_id = recovery.serialize();
     if rec_id != 0 && rec_id != 1 {

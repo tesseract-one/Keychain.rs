@@ -1,4 +1,4 @@
-use error::ErrorPtr;
+use crate::error::ErrorPtr;
 
 pub trait CResult<T> {
   fn response(&self, val: &mut T, error: &mut ErrorPtr) -> bool;

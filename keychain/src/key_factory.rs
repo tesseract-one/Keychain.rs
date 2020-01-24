@@ -1,5 +1,5 @@
-use key::{Error as KeyError, Key};
-use network::Network;
+use crate::key::{Error as KeyError, Key};
+use crate::network::Network;
 
 #[derive(Debug, Copy, Clone)]
 pub struct SeedSize {

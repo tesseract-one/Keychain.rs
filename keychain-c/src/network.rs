@@ -1,5 +1,5 @@
 use keychain::Network as RNetwork;
-use utils::ptr::Ptr;
+use crate::utils::ptr::Ptr;
 
 #[repr(C)]
 #[derive(Copy, Clone)]

@@ -5,11 +5,12 @@ authors = ["Tesseract Systems, Inc. <info@tesseract.one>"]
 license = "Apache-2.0"
 description = "secp256k1 bip32 hd wallet rust implementation"
 keywords = [ "bip32", "secp256k1", "HDWallet" ]
+edition = "2018"
 
 [dependencies]
 bip39 = { path = "../bip39" }
 cryptoxide = "0.1"
-libsecp256k1 = "0.2"
+libsecp256k1 = "0.3"
 byteorder = "1"
 ripemd160 = "0.8"
 

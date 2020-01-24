@@ -1,11 +1,11 @@
-use error::ErrorPtr;
-use key_path::KeyPath;
+use crate::error::ErrorPtr;
+use crate::key_path::KeyPath;
 use keychain::networks::bitcoin::KeyPath as RKeyPath;
 use keychain::KeyPath as IKeyPath;
 use keychain::Network as RNetwork;
-use network::Network;
-use utils::panic::handle_exception_result;
-use utils::result::CResult;
+use crate::network::Network;
+use crate::utils::panic::handle_exception_result;
+use crate::utils::result::CResult;
 
 static BITCOIN: Network = Network(RNetwork::BITCOIN.0);
 

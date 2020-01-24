@@ -1,15 +1,15 @@
 use std::collections::HashMap;
 
-use crypt;
-use data::{VersionedData, WalletDataV2};
-use entropy::{Entropy, OsEntropy};
-use error::Error;
-use key::Key;
-use key_factory::KeyFactory;
-use keychain::Keychain;
-use mnemonic::{generate_entropy, mnemonic_from_entropy, seed_from_mnemonic, Language, SEED_SIZE};
-use network::Network;
-use networks::all_networks;
+use crate::crypt;
+use crate::data::{VersionedData, WalletDataV2};
+use crate::entropy::{Entropy, OsEntropy};
+use crate::error::Error;
+use crate::key::Key;
+use crate::key_factory::KeyFactory;
+use crate::keychain::Keychain;
+use crate::mnemonic::{generate_entropy, mnemonic_from_entropy, seed_from_mnemonic, Language, SEED_SIZE};
+use crate::network::Network;
+use crate::networks::all_networks;
 
 pub struct KeychainManager {
   factories: HashMap<Network, Box<dyn KeyFactory>>,

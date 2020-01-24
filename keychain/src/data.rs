@@ -1,8 +1,8 @@
-use mnemonic::Language;
+use crate::mnemonic::Language;
 use serde_json;
 use std::collections::HashMap;
 
-use network::Network;
+use crate::network::Network;
 
 pub type Error = serde_json::error::Error;
 
@@ -68,7 +68,7 @@ impl VersionedData {
 
 // Custom data serializaion/deserialization methods
 mod serialize {
-  use network::Network;
+  use crate::network::Network;
   use serde::{Deserialize, Deserializer, Serialize, Serializer};
   use std::collections::HashMap;
 

@@ -1,9 +1,9 @@
-use crypt::DecryptError as CryptError;
-use data::Error as DataError;
-use key::Error as KeyError;
-use key_path::Error as KeyPathError;
-use mnemonic::Error as MnemonicError;
-use network::Network;
+use crate::crypt::DecryptError as CryptError;
+use crate::data::Error as DataError;
+use crate::key::Error as KeyError;
+use crate::key_path::Error as KeyPathError;
+use crate::mnemonic::Error as MnemonicError;
+use crate::network::Network;
 use std::error::Error as AnyError;
 use std::fmt;
 

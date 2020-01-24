@@ -6,6 +6,7 @@ license = "Apache-2.0"
 description = "Tesseract Multi-Network Keychain C bindings"
 keywords = [ "Wallet", "Tesseract", "Cardano", "Ethereum", "Bitcoin", "C" ]
 build = "build.rs"
+edition = "2018"
 
 [dependencies]
 tesseract-keychain = { path = "../keychain", default-features = false }
@@ -13,7 +14,7 @@ enum-primitive-derive = "0.1"
 num-traits = "0.2"
 
 [build-dependencies]
-cbindgen = "0.9"
+cbindgen = "0.12"
 
 [lib]
 name = "rust_keychain"

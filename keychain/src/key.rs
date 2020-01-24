@@ -1,6 +1,6 @@
-use key_path::{Error as KeyPathError, KeyPath};
-use mnemonic::Error as MnemonicError;
-use network::Network;
+use crate::key_path::{Error as KeyPathError, KeyPath};
+use crate::mnemonic::Error as MnemonicError;
+use crate::network::Network;
 use std::fmt;
 
 #[cfg(any(feature = "ethereum", feature = "bitcoin"))]

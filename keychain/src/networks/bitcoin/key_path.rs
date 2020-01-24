@@ -1,4 +1,4 @@
-use key_path::{Error, KeyPath as IKeyPath, BIP44_PURPOSE, BIP44_SOFT_UPPER_BOUND};
+use crate::key_path::{Error, KeyPath as IKeyPath, BIP44_PURPOSE, BIP44_SOFT_UPPER_BOUND};
 
 /// the coin type for mainnet.
 pub const COIN_TYPE: u32 = 0x80000000;

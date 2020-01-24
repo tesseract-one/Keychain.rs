@@ -5,6 +5,7 @@ authors = ["Tesseract Systems, Inc. <info@tesseract.one>"]
 license = "Apache-2.0"
 description = "Rust Bip39 mnemonic implementation"
 keywords = [ "Bip39", "Mnemonic" ]
+edition = "2018"
 
 [dependencies]
 cryptoxide = "0.1"
