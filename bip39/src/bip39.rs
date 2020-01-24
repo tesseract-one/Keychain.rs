@@ -50,11 +50,11 @@
 //! ```
 //!
 
+use crate::util::{hex, securemem};
 use cryptoxide::hmac::Hmac;
 use cryptoxide::pbkdf2::pbkdf2;
 use cryptoxide::sha2::Sha512;
 use std::{error, fmt, ops::Deref, result, str};
-use crate::util::{hex, securemem};
 
 /// Error regarding BIP39 operations
 #[derive(Debug, PartialEq, Eq)]

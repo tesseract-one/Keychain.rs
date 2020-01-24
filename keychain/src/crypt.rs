@@ -1,8 +1,8 @@
+use crate::entropy::Entropy;
 use cryptoxide::chacha20poly1305::ChaCha20Poly1305;
 use cryptoxide::hmac::Hmac;
 use cryptoxide::pbkdf2::pbkdf2;
 use cryptoxide::sha2::Sha512;
-use crate::entropy::Entropy;
 use std::error;
 use std::iter::repeat;
 

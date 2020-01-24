@@ -7,7 +7,9 @@ use crate::error::Error;
 use crate::key::Key;
 use crate::key_factory::KeyFactory;
 use crate::keychain::Keychain;
-use crate::mnemonic::{generate_entropy, mnemonic_from_entropy, seed_from_mnemonic, Language, SEED_SIZE};
+use crate::mnemonic::{
+  generate_entropy, mnemonic_from_entropy, seed_from_mnemonic, Language, SEED_SIZE
+};
 use crate::network::Network;
 use crate::networks::all_networks;
 

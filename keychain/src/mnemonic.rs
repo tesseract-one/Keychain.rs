@@ -1,5 +1,5 @@
-use bip39;
 use crate::entropy::Entropy;
+use bip39;
 use std::fmt;
 
 pub const SEED_SIZE: usize = bip39::SEED_SIZE;

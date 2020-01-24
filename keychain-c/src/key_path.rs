@@ -1,9 +1,9 @@
 use crate::error::ErrorPtr;
-use keychain::{GenericKeyPath, KeyPath as IKeyPath};
 use crate::utils::panic::handle_exception_result;
 use crate::utils::ptr::Ptr;
 use crate::utils::result::CResult;
 use crate::utils::string::CharPtr;
+use keychain::{GenericKeyPath, KeyPath as IKeyPath};
 
 #[repr(C)]
 #[derive(Copy, Clone)]

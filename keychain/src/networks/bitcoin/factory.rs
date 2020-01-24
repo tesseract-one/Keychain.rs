@@ -1,8 +1,8 @@
 use super::key::Key;
-use bip39::Seed;
 use crate::key::{Error as KeyError, Key as IKey};
 use crate::key_factory::{KeyFactory as IKeyFactory, SeedSize};
 use crate::network::Network;
+use bip39::Seed;
 
 pub struct KeyFactory;
 

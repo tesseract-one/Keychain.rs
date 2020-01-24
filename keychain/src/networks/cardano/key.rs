@@ -1,13 +1,13 @@
 use super::key_path::BIP44_COIN_TYPE;
+use crate::key::{Error, Key as IKey};
+use crate::key_path::{Error as KPError, KeyPath, BIP44_PURPOSE, BIP44_SOFT_UPPER_BOUND};
+use crate::network::Network;
 use bip39;
 use cryptoxide::digest::Digest;
 use cryptoxide::sha2::Sha512;
 use ed25519_bip32::{
   DerivationScheme, PrivateKeyError, Signature, XPrv, SIGNATURE_SIZE, XPRV_SIZE
 };
-use crate::key::{Error, Key as IKey};
-use crate::key_path::{Error as KPError, KeyPath, BIP44_PURPOSE, BIP44_SOFT_UPPER_BOUND};
-use crate::network::Network;
 use std::fmt;
 
 const D_SCHEME: DerivationScheme = DerivationScheme::V2;

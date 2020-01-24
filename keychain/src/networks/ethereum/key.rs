@@ -1,8 +1,8 @@
 use super::key_path::BIP44_COIN_TYPE;
-use bip39;
 use crate::key::{Error, Key as IKey};
 use crate::key_path::{Error as KPError, KeyPath, BIP44_PURPOSE, BIP44_SOFT_UPPER_BOUND};
 use crate::network::Network;
+use bip39;
 
 use secp256k1_bip32::XPrv;
 

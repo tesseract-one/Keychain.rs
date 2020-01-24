@@ -1,12 +1,12 @@
 use crate::error::ErrorPtr;
 use crate::key_path::KeyPath;
-use keychain::Keychain as RKeychain;
 use crate::network::{Network, NetworksPtr};
-use std::ffi::c_void;
 use crate::utils::data::DataPtr;
 use crate::utils::panic::{handle_exception, handle_exception_result};
 use crate::utils::ptr::Ptr;
 use crate::utils::result::CResult;
+use keychain::Keychain as RKeychain;
+use std::ffi::c_void;
 
 #[repr(C)]
 #[derive(Copy, Clone)]
