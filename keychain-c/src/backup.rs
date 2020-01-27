@@ -1,12 +1,12 @@
-use error::ErrorPtr;
+use crate::error::ErrorPtr;
+use crate::manager::{KeychainManagerPtr, Language};
+use crate::network::Network;
+use crate::utils::data::DataPtr;
+use crate::utils::panic::handle_exception_result;
+use crate::utils::ptr::Ptr;
+use crate::utils::result::CResult;
+use crate::utils::string::{CharPtr, ToCString};
 use keychain::Network as RNetwork;
-use manager::{KeychainManagerPtr, Language};
-use network::Network;
-use utils::data::DataPtr;
-use utils::panic::handle_exception_result;
-use utils::ptr::Ptr;
-use utils::result::CResult;
-use utils::string::{CharPtr, ToCString};
 
 #[repr(C)]
 #[derive(Copy, Clone)]
