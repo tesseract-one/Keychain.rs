@@ -3,7 +3,7 @@ use crate::keychain_c::KeychainPtr;
 use crate::network::Network;
 use crate::utils::data::DataPtr;
 use crate::utils::panic::{handle_exception, handle_exception_result};
-use crate::utils::ptr::Ptr;
+use crate::utils::ptr::{IntoArrayPtr, SizedPtr, UnsizedPtr};
 use crate::utils::result::CResult;
 use crate::utils::string::{CharPtr, ToCString};
 use keychain::{KeychainManager as RKeychainManager, Language as RLanguage};
@@ -14,17 +14,19 @@ use std::ffi::c_void;
 #[derive(Copy, Clone)]
 pub struct KeychainManagerPtr(*mut c_void);
 
-impl Ptr<RKeychainManager> for KeychainManagerPtr {
-  unsafe fn rust_ref(&self) -> &RKeychainManager {
-    (self.0 as *mut RKeychainManager).as_ref().unwrap()
+impl SizedPtr for KeychainManagerPtr {
+  type Type = RKeychainManager;
+
+  fn from_ptr(ptr: *mut c_void) -> KeychainManagerPtr {
+    Self(ptr)
   }
 
-  unsafe fn free(&mut self) {
-    if self.0.is_null() {
-      return;
-    }
-    let _: Box<RKeychainManager> = Box::from_raw(self.0 as *mut RKeychainManager);
-    self.0 = std::ptr::null_mut();
+  fn get_ptr(&self) -> *mut c_void {
+    self.0
+  }
+
+  fn set_ptr(&mut self, ptr: *mut c_void) {
+    self.0 = ptr;
   }
 }
 
@@ -73,7 +75,7 @@ pub unsafe extern "C" fn keychain_manager_new(
 pub unsafe extern "C" fn keychain_manager_has_network(
   manager: &KeychainManagerPtr, network: Network, has: &mut bool, error: &mut ErrorPtr
 ) -> bool {
-  handle_exception(|| manager.rust_ref().has_network(&network.into())).response(has, error)
+  handle_exception(|| manager.get_ref().has_network(&network.into())).response(has, error)
 }
 
 #[no_mangle]
@@ -81,7 +83,7 @@ pub unsafe extern "C" fn keychain_manager_generate_mnemonic(
   manager: &KeychainManagerPtr, lang: Language, mnemonic: &mut CharPtr, error: &mut ErrorPtr
 ) -> bool {
   handle_exception_result(|| {
-    manager.rust_ref().generate_mnemonic(lang.rust()).map(|mnemonic| mnemonic.to_cstr())
+    manager.get_ref().generate_mnemonic(lang.rust()).map(|mnemonic| mnemonic.to_cstr())
   })
   .response(mnemonic, error)
 }
@@ -94,9 +96,9 @@ pub unsafe extern "C" fn keychain_manager_keychain_data_from_seed(
   handle_exception_result(|| {
     let seed_slice = std::slice::from_raw_parts(seed, seed_len);
     manager
-      .rust_ref()
-      .keychain_data_from_seed(seed_slice, password.rust_ref())
-      .map(|data| DataPtr::from(data))
+      .get_ref()
+      .keychain_data_from_seed(seed_slice, password.get_ref())
+      .map(|data| data.into_array_ptr())
   })
   .response(data, error)
 }
@@ -108,9 +110,9 @@ pub unsafe extern "C" fn keychain_manager_keychain_data_from_mnemonic(
 ) -> bool {
   handle_exception_result(|| {
     manager
-      .rust_ref()
-      .keychain_data_from_mnemonic(mnemonic.rust_ref(), password.rust_ref(), lang.rust())
-      .map(|data| DataPtr::from(data))
+      .get_ref()
+      .keychain_data_from_mnemonic(mnemonic.get_ref(), password.get_ref(), lang.rust())
+      .map(|data| data.into_array_ptr())
   })
   .response(data, error)
 }
@@ -123,8 +125,8 @@ pub unsafe extern "C" fn keychain_manager_keychain_from_data(
   handle_exception_result(|| {
     let data_slice = std::slice::from_raw_parts(data, data_len);
     manager
-      .rust_ref()
-      .keychain_from_data(data_slice, password.rust_ref())
+      .get_ref()
+      .keychain_from_data(data_slice, password.get_ref())
       .map(|keychain| KeychainPtr::new(keychain))
   })
   .response(keychain, error)
@@ -138,9 +140,9 @@ pub unsafe extern "C" fn keychain_manager_add_network(
   handle_exception_result(|| {
     let data_slice = std::slice::from_raw_parts(data, data_len);
     manager
-      .rust_ref()
-      .add_network(data_slice, password.rust_ref(), network.into())
-      .map(|data| DataPtr::from(data))
+      .get_ref()
+      .add_network(data_slice, password.get_ref(), network.into())
+      .map(|data| data.into_array_ptr())
   })
   .response(response, error)
 }
@@ -153,9 +155,9 @@ pub unsafe extern "C" fn keychain_manager_change_password(
   handle_exception_result(|| {
     let data_slice = std::slice::from_raw_parts(data, data_len);
     manager
-      .rust_ref()
-      .change_password(data_slice, old_password.rust_ref(), new_password.rust_ref())
-      .map(|data| DataPtr::from(data))
+      .get_ref()
+      .change_password(data_slice, old_password.get_ref(), new_password.get_ref())
+      .map(|data| data.into_array_ptr())
   })
   .response(response, error)
 }

@@ -36,7 +36,7 @@ impl KeychainManager {
   }
 
   #[cfg(feature = "custom-networks")]
-  pub fn with_factories(factories: Vec<Box<KeyFactory>>) -> Result<Self, Error> {
+  pub fn with_factories(factories: Vec<Box<dyn KeyFactory>>) -> Result<Self, Error> {
     Self::with_factory_objs(factories)
   }
 

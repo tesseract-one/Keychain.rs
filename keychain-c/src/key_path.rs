@@ -1,6 +1,6 @@
 use crate::error::ErrorPtr;
 use crate::utils::panic::handle_exception_result;
-use crate::utils::ptr::Ptr;
+use crate::utils::ptr::UnsizedPtr;
 use crate::utils::result::CResult;
 use crate::utils::string::CharPtr;
 use keychain::{GenericKeyPath, KeyPath as IKeyPath};
@@ -50,7 +50,7 @@ pub unsafe extern "C" fn keypath_from_string(
   string: CharPtr, key_path: &mut KeyPath, error: &mut ErrorPtr
 ) -> bool {
   handle_exception_result(|| {
-    GenericKeyPath::from(string.rust_ref())
+    GenericKeyPath::from(string.get_ref())
       .map_err(|err| err.into())
       .map(|path| (&path as &dyn IKeyPath).into())
   })

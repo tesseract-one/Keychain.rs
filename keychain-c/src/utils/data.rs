@@ -1,4 +1,4 @@
-use super::ptr::Ptr;
+use super::ptr::ArrayPtr;
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -7,33 +7,23 @@ pub struct DataPtr {
   len: usize
 }
 
-impl Ptr<[u8]> for DataPtr {
-  unsafe fn rust_ref(&self) -> &[u8] {
-    std::slice::from_raw_parts(self.ptr, self.len)
+impl ArrayPtr for DataPtr {
+  type Element = u8;
+
+  fn from_ptr(ptr: *const u8, len: usize) -> DataPtr {
+    Self { ptr, len }
   }
 
-  unsafe fn free(&mut self) {
-    if self.ptr.is_null() {
-      return;
-    }
-    let _ = Vec::from_raw_parts(self.ptr as *mut u8, self.len, self.len);
-    self.ptr = std::ptr::null();
+  fn get_ptr(&self) -> *const u8 {
+    self.ptr
   }
-}
 
-impl From<&[u8]> for DataPtr {
-  fn from(data: &[u8]) -> Self {
-    Vec::from(data).into()
+  fn get_count(&self) -> usize {
+    self.len
   }
-}
 
-impl From<Vec<u8>> for DataPtr {
-  fn from(data: Vec<u8>) -> Self {
-    let len = data.len();
-    let mut slice = data.into_boxed_slice();
-    let out = slice.as_mut_ptr();
-    std::mem::forget(slice);
-    Self { ptr: out, len: len }
+  fn set_ptr(&mut self, ptr: *const u8) {
+    self.ptr = ptr;
   }
 }
 

@@ -1,4 +1,4 @@
-use crate::utils::ptr::Ptr;
+use crate::utils::ptr::UnsizedPtr;
 use crate::utils::string::{CharPtr, ToCString};
 use keychain::Error as RError;
 
@@ -27,9 +27,11 @@ pub struct ErrorPtr {
   message: CharPtr
 }
 
-impl Ptr<str> for ErrorPtr {
-  unsafe fn rust_ref(&self) -> &str {
-    (&self.message as &dyn Ptr<str>).rust_ref()
+impl UnsizedPtr for ErrorPtr {
+  type Type = str;
+
+  unsafe fn get_ref(&self) -> &str {
+    (&self.message as &dyn UnsizedPtr<Type = str>).get_ref()
   }
 
   unsafe fn free(&mut self) {

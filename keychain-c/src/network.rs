@@ -1,4 +1,4 @@
-use crate::utils::ptr::Ptr;
+use crate::utils::ptr::{ArrayPtr, IntoArrayPtr};
 use keychain::Network as RNetwork;
 
 #[repr(C)]
@@ -24,33 +24,29 @@ pub struct NetworksPtr {
   count: usize
 }
 
-impl Ptr<[Network]> for NetworksPtr {
-  unsafe fn rust_ref(&self) -> &[Network] {
-    std::slice::from_raw_parts(self.ptr, self.count)
+impl ArrayPtr for NetworksPtr {
+  type Element = Network;
+
+  fn from_ptr(ptr: *const Network, count: usize) -> NetworksPtr {
+    Self { ptr, count }
   }
 
-  unsafe fn free(&mut self) {
-    if self.ptr.is_null() {
-      return;
-    }
-    let _ = Vec::from_raw_parts(self.ptr as *mut &[Network], self.count, self.count);
-    self.ptr = std::ptr::null();
+  fn get_ptr(&self) -> *const Network {
+    self.ptr
   }
-}
 
-impl From<Vec<Network>> for NetworksPtr {
-  fn from(data: Vec<Network>) -> Self {
-    let len = data.len();
-    let mut slice = data.into_boxed_slice();
-    let out = slice.as_mut_ptr();
-    std::mem::forget(slice);
-    Self { ptr: out, count: len }
+  fn get_count(&self) -> usize {
+    self.count
+  }
+
+  fn set_ptr(&mut self, ptr: *const Network) {
+    self.ptr = ptr;
   }
 }
 
 impl From<Vec<RNetwork>> for NetworksPtr {
   fn from(data: Vec<RNetwork>) -> Self {
-    data.into_iter().map(|net| net.into()).collect::<Vec<Network>>().into()
+    data.into_iter().map(|net| net.into()).collect::<Vec<Network>>().into_array_ptr()
   }
 }
 

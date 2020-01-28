@@ -1,11 +1,13 @@
-use super::ptr::Ptr;
+use super::ptr::UnsizedPtr;
 use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
 
 pub type CharPtr = *const c_char;
 
-impl Ptr<str> for CharPtr {
-  unsafe fn rust_ref(&self) -> &str {
+impl UnsizedPtr for CharPtr {
+  type Type = str;
+
+  unsafe fn get_ref(&self) -> &str {
     CStr::from_ptr(*self).to_str().unwrap()
   }
 

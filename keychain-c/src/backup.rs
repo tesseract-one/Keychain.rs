@@ -3,7 +3,7 @@ use crate::manager::{KeychainManagerPtr, Language};
 use crate::network::Network;
 use crate::utils::data::DataPtr;
 use crate::utils::panic::handle_exception_result;
-use crate::utils::ptr::Ptr;
+use crate::utils::ptr::{ArrayPtr, IntoArrayPtr, SizedPtr, UnsizedPtr};
 use crate::utils::result::CResult;
 use crate::utils::string::{CharPtr, ToCString};
 use keychain::Network as RNetwork;
@@ -22,9 +22,33 @@ pub struct KeyBackupPtr {
   pub count: usize
 }
 
-impl Ptr<[KeyBackupElem]> for KeyBackupPtr {
-  unsafe fn rust_ref(&self) -> &[KeyBackupElem] {
-    std::slice::from_raw_parts(self.ptr, self.count)
+impl From<Vec<(RNetwork, Vec<u8>)>> for KeyBackupPtr {
+  fn from(data: Vec<(RNetwork, Vec<u8>)>) -> Self {
+    data
+      .into_iter()
+      .map(|(net, data)| KeyBackupElem { network: net.into(), data: data.into_array_ptr() })
+      .collect::<Vec<KeyBackupElem>>()
+      .into_array_ptr()
+  }
+}
+
+impl ArrayPtr for KeyBackupPtr {
+  type Element = KeyBackupElem;
+
+  fn from_ptr(ptr: *const KeyBackupElem, count: usize) -> KeyBackupPtr {
+    Self { ptr, count }
+  }
+
+  fn get_ptr(&self) -> *const KeyBackupElem {
+    self.ptr
+  }
+
+  fn get_count(&self) -> usize {
+    self.count
+  }
+
+  fn set_ptr(&mut self, ptr: *const KeyBackupElem) {
+    self.ptr = ptr;
   }
 
   unsafe fn free(&mut self) {
@@ -36,21 +60,6 @@ impl Ptr<[KeyBackupElem]> for KeyBackupPtr {
       elem.data.free();
     }
     self.ptr = std::ptr::null();
-  }
-}
-
-impl KeyBackupPtr {
-  fn from(data: Vec<(RNetwork, Vec<u8>)>) -> Self {
-    let mapped: Vec<KeyBackupElem> = data
-      .into_iter()
-      .map(|(net, data)| KeyBackupElem { network: net.into(), data: DataPtr::from(data) })
-      .collect();
-
-    let len = mapped.len();
-    let mut slice = mapped.into_boxed_slice();
-    let out = slice.as_mut_ptr();
-    std::mem::forget(slice);
-    Self { ptr: out, count: len }
   }
 }
 
@@ -67,9 +76,11 @@ impl MnemonicInfoPtr {
   }
 }
 
-impl Ptr<str> for MnemonicInfoPtr {
-  unsafe fn rust_ref(&self) -> &str {
-    (&self.mnemonic as &dyn Ptr<str>).rust_ref()
+impl UnsizedPtr for MnemonicInfoPtr {
+  type Type = str;
+
+  unsafe fn get_ref(&self) -> &str {
+    (&self.mnemonic as &dyn UnsizedPtr<Type = str>).get_ref()
   }
 
   unsafe fn free(&mut self) {
@@ -87,10 +98,7 @@ pub unsafe extern "C" fn keychain_manager_get_keys_data(
 ) -> bool {
   handle_exception_result(|| {
     let data_slice = std::slice::from_raw_parts(encrypted, encrypted_len);
-    manager
-      .rust_ref()
-      .get_keys_data(data_slice, password.rust_ref())
-      .map(|backup| KeyBackupPtr::from(backup))
+    manager.get_ref().get_keys_data(data_slice, password.get_ref()).map(|backup| backup.into())
   })
   .response(data, error)
 }
@@ -103,8 +111,8 @@ pub unsafe extern "C" fn keychain_manager_retrieve_mnemonic(
   handle_exception_result(|| {
     let data_slice = std::slice::from_raw_parts(data, data_len);
     manager
-      .rust_ref()
-      .retrieve_mnemonic(data_slice, password.rust_ref())
+      .get_ref()
+      .retrieve_mnemonic(data_slice, password.get_ref())
       .map(|(mnemonic, lang)| MnemonicInfoPtr::new(mnemonic, lang.into()))
   })
   .response(mnemonic, error)
