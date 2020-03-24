@@ -3,5 +3,6 @@ members = [
   "bip39",
   "secp256k1_bip32",
   "keychain",
-  "keychain-c"
+  "keychain-c",
+  "keychain-java"
 ]
