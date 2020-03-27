@@ -4,4 +4,6 @@ class Network extends RustObject {
   public Network(long ptr) {
     super(ptr);
   }
+  
+  public native void free();
 }

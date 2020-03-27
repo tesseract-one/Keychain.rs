@@ -1,4 +1,4 @@
-use keychain::{Keychain, KeychainManager, Language, Network};
+use keychain::{GenericKeyPath, Keychain, KeychainManager, Language, Network};
 
 const PACKAGE: &str = "one/tesseract/keychain/";
 
@@ -15,6 +15,12 @@ impl JavaClass for Keychain {
 impl JavaClass for KeychainManager {
   fn class_name() -> String {
     PACKAGE.to_owned() + "KeychainManager"
+  }
+}
+
+impl JavaClass for GenericKeyPath {
+  fn class_name() -> String {
+    PACKAGE.to_owned() + "GenericKeyPath"
   }
 }
 

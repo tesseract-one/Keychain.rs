@@ -1,5 +1,5 @@
 use super::error::JavaError;
-use super::ptr::AsPtr;
+use super::ptr::Ptr;
 use super::result::IntoResult;
 use crate::java_class::JavaClass;
 use jni::objects::JObject;
