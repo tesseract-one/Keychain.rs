@@ -1,7 +1,7 @@
 package one.tesseract.keychain;
 
 class RustObject {
-  private final long ptr;
+  private long ptr;
 
   static {
     System.loadLibrary("rust_keychain_java");
@@ -11,7 +11,11 @@ class RustObject {
     this.ptr = ptr;
   }
 
-  public long getPtr() {
-    return this.ptr;
+  public long getPtr(boolean isOwned) {
+    long ptr = this.ptr;
+    if (isOwned) {
+      this.ptr = 0;
+    }
+    return ptr;
   }
 }

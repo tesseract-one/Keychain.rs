@@ -7,13 +7,16 @@ use jni::sys::jlong;
 use jni::JNIEnv;
 
 pub trait Ptr {
-  fn as_ptr(self, env: &JNIEnv) -> Result<jlong, JavaError>;
+  fn as_ptr(self, env: &JNIEnv, is_owned: bool) -> Result<jlong, JavaError>;
   unsafe fn free<T: JavaClass>(self, env: &JNIEnv) -> Result<(), JavaError>;
 }
 
 impl Ptr for JObject<'_> {
-  fn as_ptr(self, env: &JNIEnv) -> Result<jlong, JavaError> {
-    env.call_method(self, "getPtr", "()J", &[]).and_then(|value| value.j()).into_result()
+  fn as_ptr(self, env: &JNIEnv, is_owned: bool) -> Result<jlong, JavaError> {
+    env
+      .call_method(self, "getPtr", "(Z)J", &[is_owned.into()])
+      .and_then(|value| value.j())
+      .into_result()
   }
 
   unsafe fn free<T: JavaClass>(self, env: &JNIEnv) -> Result<(), JavaError> {

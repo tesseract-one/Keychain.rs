@@ -28,10 +28,10 @@ pub trait IntoRObject<'a> {
 
 impl<'a> IntoRObject<'a> for JObject<'a> {
   unsafe fn into_ref<T: JavaClass>(self, env: &JNIEnv) -> Result<&'a mut T, JavaError> {
-    self.as_ptr(env).map(|ptr| &mut *(ptr as *mut T))
+    self.as_ptr(env, false).map(|ptr| &mut *(ptr as *mut T))
   }
 
   unsafe fn into_owned<T: JavaClass>(self, env: &JNIEnv) -> Result<T, JavaError> {
-    self.as_ptr(env).map(|ptr| *Box::from_raw(ptr as *mut T))
+    self.as_ptr(env, true).map(|ptr| *Box::from_raw(ptr as *mut T))
   }
 }
