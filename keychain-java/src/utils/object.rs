@@ -1,17 +1,16 @@
-use super::error::JavaError;
 use super::ptr::Ptr;
-use super::result::IntoResult;
+use super::result::{IntoResult, JResult};
 use crate::java_class::JavaClass;
 use jni::objects::JObject;
 use jni::sys::{jlong, jobject};
 use jni::JNIEnv;
 
 pub trait IntoJObject {
-  fn into_jobject(self, env: &JNIEnv) -> Result<jobject, JavaError>;
+  fn into_jobject(self, env: &JNIEnv) -> JResult<jobject>;
 }
 
 impl<T: JavaClass> IntoJObject for T {
-  fn into_jobject(self, env: &JNIEnv) -> Result<jobject, JavaError> {
+  fn into_jobject(self, env: &JNIEnv) -> JResult<jobject> {
     let ptr = Box::into_raw(Box::new(self)) as jlong;
     env
       .find_class(T::class_name())
@@ -22,16 +21,16 @@ impl<T: JavaClass> IntoJObject for T {
 }
 
 pub trait IntoRObject<'a> {
-  unsafe fn into_ref<T: JavaClass>(self, env: &JNIEnv) -> Result<&'a mut T, JavaError>;
-  unsafe fn into_owned<T: JavaClass>(self, env: &JNIEnv) -> Result<T, JavaError>;
+  unsafe fn into_ref<T: JavaClass>(self, env: &JNIEnv) -> JResult<&'a mut T>;
+  unsafe fn into_owned<T: JavaClass>(self, env: &JNIEnv) -> JResult<T>;
 }
 
 impl<'a> IntoRObject<'a> for JObject<'a> {
-  unsafe fn into_ref<T: JavaClass>(self, env: &JNIEnv) -> Result<&'a mut T, JavaError> {
+  unsafe fn into_ref<T: JavaClass>(self, env: &JNIEnv) -> JResult<&'a mut T> {
     self.as_ptr(env, false).map(|ptr| &mut *(ptr as *mut T))
   }
 
-  unsafe fn into_owned<T: JavaClass>(self, env: &JNIEnv) -> Result<T, JavaError> {
+  unsafe fn into_owned<T: JavaClass>(self, env: &JNIEnv) -> JResult<T> {
     self.as_ptr(env, true).map(|ptr| *Box::from_raw(ptr as *mut T))
   }
 }
