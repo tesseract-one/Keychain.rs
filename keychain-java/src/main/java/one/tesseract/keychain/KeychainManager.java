@@ -1,5 +1,7 @@
 package one.tesseract.keychain;
 
+import java.util.Map;
+
 class KeychainManager extends RustObject {
   public KeychainManager(long ptr) {
     super(ptr);
@@ -13,5 +15,6 @@ class KeychainManager extends RustObject {
   public native Keychain keychainFromData(byte[] data, String password);
   public native byte[] addNetwork(byte[] encrypted, String password, Network network);
   public native byte[] changePassword(byte[] encrypted, String oldPassword, String newPassword);
+  public native Map<Network, byte[]> getKeysData(byte[] encrypted, String password);
   public native void free();
 }
