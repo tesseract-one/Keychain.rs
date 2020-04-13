@@ -1,6 +1,6 @@
 use keychain::{GenericKeyPath, Keychain, KeychainManager, Language, Network};
 
-const PACKAGE: &str = "one/tesseract/keychain/";
+pub const PACKAGE: &str = "one/tesseract/keychain/";
 
 pub trait JavaClass {
   fn class_name() -> String;

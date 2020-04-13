@@ -21,3 +21,9 @@ impl JniType for u8 {
     "B".to_owned()
   }
 }
+
+impl JniType for String {
+  fn jni_type_signature() -> String {
+    String::from("Ljava/lang/String;")
+  }
+}
