@@ -1,6 +1,6 @@
 package one.tesseract.keychain;
 
-class RustObject {
+public class RustObject {
   private long ptr;
 
   static {

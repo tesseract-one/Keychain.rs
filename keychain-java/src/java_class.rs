@@ -1,4 +1,4 @@
-use keychain::{GenericKeyPath, Keychain, KeychainManager, Language, Network};
+use keychain::{networks::bitcoin, GenericKeyPath, Keychain, KeychainManager, Language, Network};
 
 pub const PACKAGE: &str = "one/tesseract/keychain/";
 
@@ -21,6 +21,12 @@ impl JavaClass for Keychain {
 impl JavaClass for KeychainManager {
   fn class_name() -> String {
     PACKAGE.to_owned() + "KeychainManager"
+  }
+}
+
+impl JavaClass for bitcoin::KeyPath {
+  fn class_name() -> String {
+    PACKAGE.to_owned() + "bitcoin/KeyPath"
   }
 }
 

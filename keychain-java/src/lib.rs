@@ -1,9 +1,10 @@
 extern crate keychain;
 
 mod backup;
-mod generic_key_path;
+mod bitcoin;
 mod java_class;
 mod jni_type;
+mod key_path;
 mod keychain_java;
 mod manager;
 mod network;
