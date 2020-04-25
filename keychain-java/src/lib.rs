@@ -2,6 +2,7 @@ extern crate keychain;
 
 mod backup;
 mod bitcoin;
+mod cardano;
 mod java_class;
 mod jni_type;
 mod key_path;

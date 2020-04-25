@@ -1,6 +1,6 @@
 package one.tesseract.keychain;
 
-public class RustObject {
+public abstract class RustObject {
   private long ptr;
 
   static {
@@ -18,4 +18,6 @@ public class RustObject {
     }
     return ptr;
   }
+
+  public abstract void free();
 }

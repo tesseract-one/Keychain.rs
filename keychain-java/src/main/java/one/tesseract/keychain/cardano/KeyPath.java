@@ -1,4 +1,4 @@
-package one.tesseract.keychain.bitcoin;
+package one.tesseract.keychain.cardano;
 
 import one.tesseract.keychain.IKeyPath;
 import one.tesseract.keychain.RustObject;
@@ -11,9 +11,7 @@ public class KeyPath extends RustObject implements IKeyPath {
   @Override
   public native void free();
 
-  public static native KeyPath bip44(boolean testnet, int account, int change, int address);
-  public static native KeyPath bip84(boolean testnet, int account, int change, int address);
-  public static native KeyPath bip49(boolean testnet, int account, int change, int address);
+  public static native KeyPath newKeyPath(boolean testnet, int account, int change, int address);
 
   @Override
   public native int purpose();

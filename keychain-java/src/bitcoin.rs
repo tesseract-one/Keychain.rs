@@ -10,6 +10,13 @@ use keychain::networks::bitcoin::KeyPath;
 use keychain::KeyPath as IKeyPath;
 
 #[no_mangle]
+pub unsafe extern "system" fn Java_one_tesseract_keychain_bitcoin_KeyPath_free(
+  env: JNIEnv, bitcoin_key_path: JObject
+) {
+  handle_result(|| bitcoin_key_path.free::<KeyPath>(&env))
+}
+
+#[no_mangle]
 pub unsafe extern "system" fn Java_one_tesseract_keychain_bitcoin_KeyPath_bip44(
   env: JNIEnv, _: JClass, testnet: jboolean, account: jint, change: jint, address: jint
 ) -> jobject {
@@ -40,13 +47,6 @@ pub unsafe extern "system" fn Java_one_tesseract_keychain_bitcoin_KeyPath_bip84(
       .into_result()
       .and_then(|key_path| key_path.into_jobject(&env))
   })
-}
-
-#[no_mangle]
-pub unsafe extern "system" fn Java_one_tesseract_keychain_GenericKeyPath_free(
-  env: JNIEnv, bitcoin_key_path: JObject
-) {
-  handle_result(|| bitcoin_key_path.free::<KeyPath>(&env))
 }
 
 #[no_mangle]

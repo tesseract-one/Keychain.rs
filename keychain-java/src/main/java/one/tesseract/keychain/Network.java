@@ -5,5 +5,6 @@ class Network extends RustObject {
     super(ptr);
   }
   
+  @Override
   public native void free();
 }

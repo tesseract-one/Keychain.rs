@@ -17,5 +17,7 @@ class KeychainManager extends RustObject {
   public native byte[] changePassword(byte[] encrypted, String oldPassword, String newPassword);
   public native Map<Network, byte[]> getKeysData(byte[] encrypted, String password);
   public native MnemonicInfo retrieveMnemonic(byte[] encrypted, String password);
+
+  @Override
   public native void free();
 }

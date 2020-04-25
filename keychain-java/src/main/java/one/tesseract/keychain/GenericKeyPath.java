@@ -6,6 +6,8 @@ class GenericKeyPath extends RustObject implements IKeyPath {
   }
 
   public static native GenericKeyPath fromString(String string);
+
+  @Override
   public native void free();
 
   @Override
