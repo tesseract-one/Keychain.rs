@@ -36,6 +36,12 @@ impl JavaClass for cardano::KeyPath {
   }
 }
 
+impl JavaClass for ethereum::KeyPath {
+  fn class_name() -> String {
+    PACKAGE.to_owned() + "ethereum/KeyPath"
+  }
+}
+
 impl JavaClass for Language {
   fn class_name() -> String {
     PACKAGE.to_owned() + "Language"
