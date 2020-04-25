@@ -1,21 +1,19 @@
-use jni::JNIEnv;
+use crate::keychain::KeyPath as IKeyPath;
+use crate::utils::handler::*;
+use crate::utils::object::IntoJObject;
+use crate::utils::ptr::Ptr;
+use crate::utils::result::IntoResult;
 use jni::objects::{JClass, JObject};
 use jni::sys::{jint, jobject};
-use crate::utils::handler::*;
-use crate::utils::result::IntoResult;
-use crate::utils::object::IntoJObject;
+use jni::JNIEnv;
 use keychain::networks::ethereum::KeyPath;
-use crate::keychain::KeyPath as IKeyPath;
-use crate::utils::ptr::Ptr;
 
 #[no_mangle]
 pub unsafe extern "system" fn Java_one_tesseract_keychain_ethereum_KeyPath_newKeyPath(
   env: JNIEnv, _: JClass, account: jint
 ) -> jobject {
   handle_result(|| {
-    KeyPath::new(account as u32)
-      .into_result()
-      .and_then(|key_path| key_path.into_jobject(&env))
+    KeyPath::new(account as u32).into_result().and_then(|key_path| key_path.into_jobject(&env))
   })
 }
 
@@ -79,7 +77,5 @@ pub unsafe extern "system" fn Java_one_tesseract_keychain_ethereum_KeyPath_addre
 pub unsafe extern "system" fn Java_one_tesseract_keychain_ethereum_KeyPath_free(
   env: JNIEnv, ethereum_key_path: JObject
 ) {
-  handle_result(|| {
-    ethereum_key_path.free::<KeyPath>(&env)
-  })
+  handle_result(|| ethereum_key_path.free::<KeyPath>(&env))
 }
