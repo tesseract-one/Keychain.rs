@@ -1,6 +1,6 @@
 package one.tesseract.keychain;
 
-class GenericKeyPath extends RustObject implements IKeyPath {
+public class GenericKeyPath extends RustObject implements IKeyPath {
   public GenericKeyPath(long ptr) {
     super(ptr);
   }

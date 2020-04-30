@@ -2,7 +2,7 @@ package one.tesseract.keychain;
 
 import java.util.Map;
 
-class KeychainManager extends RustObject {
+public class KeychainManager extends RustObject {
   public KeychainManager(long ptr) {
     super(ptr);
   }

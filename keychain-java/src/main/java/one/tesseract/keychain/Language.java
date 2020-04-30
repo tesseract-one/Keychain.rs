@@ -1,6 +1,6 @@
 package one.tesseract.keychain;
 
-enum Language {
+public enum Language {
   English,
   French,
   Japanese,
