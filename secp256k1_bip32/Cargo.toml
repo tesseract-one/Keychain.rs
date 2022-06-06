@@ -9,7 +9,7 @@ keywords = [ "bip32", "secp256k1", "HDWallet" ]
 [dependencies]
 bip39 = { path = "../bip39" }
 cryptoxide = "0.1"
-libsecp256k1 = "0.2"
+libsecp256k1 = "0.3"
 byteorder = "1"
 ripemd160 = "0.8"
 
